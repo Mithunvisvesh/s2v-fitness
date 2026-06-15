@@ -1,0 +1,351 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  COUNSELLOR
+  TRAINER
+}
+
+enum MemberStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  ARCHIVED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum MaritalStatus {
+  SINGLE
+  MARRIED
+  DIVORCED
+  WIDOWED
+}
+
+enum PackageType {
+  MONTHLY
+  QUARTERLY
+  HALF_YEARLY
+  YEARLY
+}
+
+enum PhysicalActivityLevel {
+  MILD
+  MODERATE
+  HEAVY
+}
+
+enum StressLevel {
+  MILD
+  MODERATE
+  HEAVY
+}
+
+enum SleepQuality {
+  SOUND
+  DISTURBED
+  FAIR
+  BAD
+}
+
+// ---- Core Tables ----
+
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  password      String
+  role          Role     @default(TRAINER)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  counsellorMembers Member[]  @relation("CounsellorMembers")
+  trainerMembers    Member[]  @relation("TrainerMembers")
+  counsellingNotes  CounsellingNote[]
+  auditLogs         AuditLog[]
+}
+
+model Member {
+  id              String       @id @default(cuid())
+  membershipNo    String       @unique
+  receiptNo       String?
+  date            DateTime     @default(now())
+  fullName        String
+  gender          Gender
+  dateOfBirth     DateTime
+  age             Int?         // auto-calculated on write
+  mobile          String
+  email           String?
+  address         String?
+  maritalStatus   MaritalStatus?
+  status          MemberStatus @default(ACTIVE)
+
+  // Membership
+  package         PackageType
+  durationMonths  Int
+  startDate       DateTime
+  endDate         DateTime
+  counsellorId    String?
+  counsellor      User?         @relation("CounsellorMembers", fields: [counsellorId], references: [id])
+  trainerId       String?
+  trainer         User?         @relation("TrainerMembers", fields: [trainerId], references: [id])
+
+  // Fitness goals (bitmask or separate table)
+  fitnessGoals    FitnessGoal[]
+
+  // Related assessments
+  parQ             PARQ?
+  lifestyle        LifestyleProfile?
+  medicalConditions MedicalCondition[]
+  menstrualHistory MenstrualHistory?
+  posturalAnalysis PosturalAnalysis?
+  fitnessTests     FitnessTest[]
+  measurements     Measurement[]
+  counsellingNotes CounsellingNote[]
+  documents        Document[]
+  consent          Consent?
+
+  archivedAt      DateTime?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
+
+model FitnessGoal {
+  id       String   @id @default(cuid())
+  memberId String
+  member   Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  goal     String   // Weight Loss, Weight Gain, etc.
+
+  @@unique([memberId, goal])
+}
+
+model PARQ {
+  id          String @id @default(cuid())
+  memberId    String @unique
+  member      Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  q1_heartTrouble                Boolean
+  q2_chestPain                  Boolean
+  q3_dizzinessFainting          Boolean
+  q4_highBloodPressure          Boolean
+  q5_boneJointProblems          Boolean
+  q6_otherReasons               Boolean
+  q7_over45Unaccustomed         Boolean
+  requiresMedicalClearance      Boolean @default(false)
+  createdAt    DateTime @default(now())
+}
+
+model LifestyleProfile {
+  id                     String @id @default(cuid())
+  memberId               String @unique
+  member                 Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  occupation             String?
+  physicalActivityLevel  PhysicalActivityLevel?
+  workStress             StressLevel?
+  personalStress         StressLevel?
+  travelFrequency        String?   // Rare, Frequent, etc.
+
+  avgSleepHours          Float?
+  sleepQuality           SleepQuality?
+  sleepTiming            String?
+  afternoonNap           Boolean?
+  napDuration            String?
+
+  smoking                Boolean?
+  smokingFrequency       String?
+  alcohol                Boolean?
+  alcoholFrequency       String?
+  tobacco                Boolean?
+  tobaccoFrequency       String?
+
+  createdAt              DateTime @default(now())
+}
+
+model MedicalCondition {
+  id                String @id @default(cuid())
+  memberId          String
+  member            Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  conditionName     String
+  details           String?
+  notes             String?
+  createdAt         DateTime @default(now())
+}
+
+model MenstrualHistory {
+  id                            String @id @default(cuid())
+  memberId                      String @unique
+  member                        Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  lastCycleDate                 DateTime?
+  ageAtMenstruationOnset        Int?
+  averageCycleLength            Int?
+  irregularCycles               Boolean?
+  spotting                      Boolean?
+  missedCycles                  Boolean?
+  painfulMenstruation           Boolean?
+}
+
+model PosturalAnalysis {
+  id                    String @id @default(cuid())
+  memberId              String @unique
+  member                Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  neckFlexion           String?
+  neckLateralFlexion    String?
+  pokeChin              String?
+  neckLateralRotation   String?
+
+  spineKyphosis         String?
+  spineLordosis         String?
+  spineScoliosis        String?
+  spineKyphoscoliosis   String?
+
+  scapulaLeft           String?   // Normal, Protracted, Elevated, Winging
+  scapulaRight          String?
+
+  lphcAsymmetrical      Boolean?
+
+  kneeLeft              String?   // Genu Valgum, Genu Varum
+  kneeRight             String?
+
+  footLeft              String?   // Flat Foot, Normal, Inversion, Eversion
+  footRight             String?
+
+  symmetryDeviation     String?
+  trainerNotes          String?
+
+  createdAt             DateTime @default(now())
+}
+
+model FitnessTest {
+  id                  String @id @default(cuid())
+  memberId            String
+  member              Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  testDate            DateTime @default(now())
+
+  // Cardiovascular
+  cardioMachine       String?
+  distance            Float?
+  durationMinutes     Int?
+  treadmillNotes      String?
+
+  // Muscular Endurance
+  wallPushUpsReps     Int?
+  wallPushUpsDurationSec Int?
+  squatsReps          Int?
+  squatsDurationSec   Int?
+  crunchesReps        Int?
+  crunchesDurationSec Int?
+
+  // Flexibility
+  sitAndReachCm       Float?
+
+  // Core Endurance
+  ironManHoldSec      Int?
+  pelvicBridgeSec     Int?
+
+  // Balance (Left / Right)
+  rProprioception     String?
+  rSingleLegStanding  String?
+  rStandingBalance    String?
+  lProprioception     String?
+  lSingleLegStanding  String?
+  lStandingBalance    String?
+
+  createdAt           DateTime @default(now())
+}
+
+model Measurement {
+  id              String @id @default(cuid())
+  memberId        String
+  member          Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  measuredAt      DateTime @default(now())
+
+  // Body Composition
+  heightCm        Float?
+  weightKg        Float?
+  bmi             Float?   // auto-calculated
+  bodyFatPercent  Float?
+  visceralFat     Float?
+  bmr             Float?
+  biologicalAge   Int?
+
+  // Frame
+  shoulderWidth   Float? // bi-acromial
+  hipWidth        Float? // bi-iliac
+
+  // Circumferences
+  neckCirc        Float?
+  shoulderCirc    Float?
+  chestNormal     Float?
+  chestExpansion  Float?
+  armCirc         Float?
+  forearmCirc     Float?
+  abdomenCirc     Float?
+  waistCirc       Float?
+  hipCirc         Float?
+  midThighCirc    Float?
+  calfCirc        Float?
+
+  waistHipRatio   Float? // auto-calculated (waist/hip)
+  ratioIndicator  String? // "Healthy" / "Needs Attention"
+
+  createdAt       DateTime @default(now())
+}
+
+model CounsellingNote {
+  id          String @id @default(cuid())
+  memberId    String
+  member      Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  authorId    String
+  author      User   @relation(fields: [authorId], references: [id])
+  noteType    String // Fitness Counselling, Training Note, etc.
+  description String
+  createdAt   DateTime @default(now())
+}
+
+model Document {
+  id          String @id @default(cuid())
+  memberId    String
+  member      Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  fileName    String
+  fileUrl     String
+  fileType    String   // "pdf", "image", etc.
+  category    String?  // Medical, Lab, Diet, Photo, Consent
+  uploadedAt  DateTime @default(now())
+}
+
+model Consent {
+  id                  String @id @default(cuid())
+  memberId            String @unique
+  member              Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  emergencyContactName String?
+  emergencyMobile     String?
+  relationship        String?
+  consentDate         DateTime @default(now())
+  digitalSignature    String? // base64 image
+  createdAt           DateTime @default(now())
+}
+
+model AuditLog {
+  id          String @id @default(cuid())
+  userId      String
+  user        User   @relation(fields: [userId], references: [id])
+  action      String // "CREATE_MEMBER", "ARCHIVE_MEMBER", etc.
+  entityType  String // "Member", "Measurement"
+  entityId    String
+  details     Json?
+  createdAt   DateTime @default(now())
+}
