@@ -7,7 +7,10 @@ export const memberSchema = z.object({
   receiptNo: z.string().optional(),
   date: z.coerce.date(),
   gender: z.enum(["MALE", "FEMALE", "OTHER"]),
-  dateOfBirth: z.coerce.date({ required_error: "Date of birth required" }),
+  dateOfBirth: z.coerce.date().refine(
+  (date) => !isNaN(date.getTime()),
+  "Date of birth required"
+),
   mobile: z.string().regex(/^[0-9]{10}$/, "Enter a valid 10-digit mobile number"),
   email: z.string().email().optional().or(z.literal("")),
   address: z.string().optional(),

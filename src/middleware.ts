@@ -16,7 +16,9 @@ export default auth((req) => {
     return NextResponse.redirect(new URL("/login", req.url))
   }
   // Admin-only routes
-  if (pathname.startsWith("/settings") && session.user.role !== "ADMIN") {
+  const role = (session?.user as any)?.role
+  
+  if (pathname.startsWith("/settings") && role !== "ADMIN") {
     return NextResponse.redirect(new URL("/dashboard", req.url))
   }
   return NextResponse.next()

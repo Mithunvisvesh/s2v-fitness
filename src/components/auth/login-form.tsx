@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { toast } from "@/components/ui/use-toast"
+import { toast } from "sonner"
 
 export function LoginForm() {
   const router = useRouter()
@@ -23,7 +23,7 @@ export function LoginForm() {
     })
     setLoading(false)
     if (res?.error) {
-      toast({ title: "Invalid credentials", variant: "destructive" })
+      toast.error("Invalid credentials")
     } else {
       router.push("/dashboard")
     }

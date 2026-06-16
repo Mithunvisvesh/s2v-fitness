@@ -12,7 +12,11 @@ import { Button } from "@/components/ui/button"
 import { signOut } from "next-auth/react"
 
 interface Props {
-  user?: { name?: string; email?: string; role?: string }
+  user?: {
+    name?: string | null
+    email?: string | null
+    role?: string | null
+  }
 }
 
 export function UserNav({ user }: Props) {
