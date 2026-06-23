@@ -2,8 +2,6 @@ import { auth } from "@/lib/auth"
 import { GlobalSearch } from "@/components/search/global-search"
 import { UserNav } from "./user-nav"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { Menu } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { ToggleSidebar } from "./toggle-sidebar"
 
 export async function TopNav() {

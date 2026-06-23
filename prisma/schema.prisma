@@ -85,8 +85,8 @@ model Member {
   gender          Gender
   dateOfBirth     DateTime
   age             Int?         // auto-calculated on write
-  mobile          String
-  email           String?
+  mobile          String       @unique
+  email           String?      @unique
   address         String?
   maritalStatus   MaritalStatus?
   status          MemberStatus @default(ACTIVE)
@@ -119,6 +119,11 @@ model Member {
   archivedAt      DateTime?
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
+
+  @@index([status])
+  @@index([fullName])
+  @@index([counsellorId])
+  @@index([trainerId])
 }
 
 model FitnessGoal {

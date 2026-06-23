@@ -1,8 +1,39 @@
-export default function NewMemberPage() {
+import { redirect } from "next/navigation"
+
+import { auth } from "@/lib/auth"
+import { getStaffOptions, getSuggestedMembershipNo } from "@/server/queries/members"
+import { MemberForm } from "@/components/member/member-form"
+
+export const metadata = { title: "Register Member — S2V Fitness" }
+
+export default async function NewMemberPage() {
+  const session = await auth()
+  const role = session?.user?.role
+
+  if (!role || (role !== "ADMIN" && role !== "COUNSELLOR")) {
+    redirect("/members")
+  }
+
+  const [{ counsellors, trainers }, suggestedNo] = await Promise.all([
+    getStaffOptions(),
+    getSuggestedMembershipNo(),
+  ])
+
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold">New Member</h1>
-      <p>Member registration form coming soon.</p>
+    <div className="flex flex-col gap-6 p-6">
+      <div>
+        <h1 className="font-heading text-2xl font-semibold">Register member</h1>
+        <p className="text-sm text-muted-foreground">
+          Fill in the details below to create a new membership record.
+        </p>
+      </div>
+      <MemberForm
+        mode="create"
+        counsellors={counsellors}
+        trainers={trainers}
+        showCounsellorField={role === "ADMIN"}
+        defaultValues={{ membershipNo: suggestedNo }}
+      />
     </div>
   )
 }

@@ -7,7 +7,6 @@ import {
   Users,
   ClipboardCheck,
   BarChart3,
-  Settings,
   PlusCircle,
   Archive
 } from "lucide-react"
