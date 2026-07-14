@@ -9,14 +9,14 @@ export default auth((req) => {
   const session = req.auth
 
   if (!session) {
-    return NextResponse.redirect(new URL("/login", req.url))
+    return NextResponse.redirect(new URL("/login", req.nextUrl))
   }
 
   // Admin-only routes
   const role = session.user?.role
 
   if (pathname.startsWith("/settings") && role !== "ADMIN") {
-    return NextResponse.redirect(new URL("/dashboard", req.url))
+    return NextResponse.redirect(new URL("/dashboard", req.nextUrl))
   }
 
   return NextResponse.next()
