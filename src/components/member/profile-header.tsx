@@ -23,9 +23,10 @@ interface ProfileHeaderProps {
     endDate: Date
   }
   canManage: boolean
+  children?: React.ReactNode
 }
 
-export function ProfileHeader({ member, canManage }: ProfileHeaderProps) {
+export function ProfileHeader({ member, canManage, children }: ProfileHeaderProps) {
   const packageLabel = PACKAGE_OPTIONS.find((p) => p.value === member.package)?.label ?? member.package
   const isOverdue = member.status === "ACTIVE" && member.endDate < new Date()
 
@@ -51,21 +52,24 @@ export function ProfileHeader({ member, canManage }: ProfileHeaderProps) {
           </p>
         </div>
       </div>
-      {canManage && (
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" asChild>
-            <Link href={`/members/${member.id}/edit`}>
-              <Pencil /> Edit
-            </Link>
-          </Button>
-          <MemberRowActions
-            memberId={member.id}
-            memberName={member.fullName}
-            variant={member.status === "ARCHIVED" ? "archived" : "active"}
-            canManage={canManage}
-          />
-        </div>
-      )}
+      <div className="flex items-center gap-2">
+        {children}
+        {canManage && (
+          <>
+            <Button variant="outline" size="sm" asChild>
+              <Link href={`/members/${member.id}/edit`}>
+                <Pencil /> Edit
+              </Link>
+            </Button>
+            <MemberRowActions
+              memberId={member.id}
+              memberName={member.fullName}
+              variant={member.status === "ARCHIVED" ? "archived" : "active"}
+              canManage={canManage}
+            />
+          </>
+        )}
+      </div>
     </div>
   )
 }

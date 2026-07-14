@@ -25,6 +25,7 @@ interface MemberRow {
   package: string
   status: string
   endDate: Date
+  archivedAt?: Date | null
   counsellor: { name: string } | null
   trainer: { name: string } | null
 }
@@ -104,7 +105,11 @@ export function MembersTable({
             <TableCell>
               <MemberStatusBadge status={member.status} />
             </TableCell>
-            <TableCell>{formatDate(member.endDate)}</TableCell>
+            <TableCell>
+              {variant === "archived" && member.archivedAt
+                ? formatDate(member.archivedAt)
+                : formatDate(member.endDate)}
+            </TableCell>
             <TableCell>{member.counsellor?.name ?? "—"}</TableCell>
             <TableCell>{member.trainer?.name ?? "—"}</TableCell>
             <TableCell className="text-right">

@@ -252,33 +252,44 @@ export async function archiveMember(memberId: string) {
   revalidatePath(`/members/${memberId}`)
 }
 
-export async function restoreMember(memberId: string) {
-  const session = await requireStaffSession()
+export async function restoreMember(memberId: string): Promise<ActionResult> {
+  try {
+    const session = await requireStaffSession()
 
-  const member = await prisma.member.findUnique({
-    where: { id: memberId },
-    select: { endDate: true },
-  })
-  const restoredStatus =
-    member && member.endDate < new Date() ? "EXPIRED" : "ACTIVE"
+    const member = await prisma.member.findUnique({
+      where: { id: memberId },
+      select: { endDate: true },
+    })
+    const restoredStatus =
+      member && member.endDate < new Date() ? "EXPIRED" : "ACTIVE"
 
-  await prisma.member.update({
-    where: { id: memberId },
-    data: { status: restoredStatus, archivedAt: null },
-  })
+    await prisma.member.update({
+      where: { id: memberId },
+      data: { status: restoredStatus, archivedAt: null },
+    })
 
-  await prisma.auditLog.create({
-    data: {
-      userId: session.user.id,
-      action: "RESTORE_MEMBER",
-      entityType: "Member",
-      entityId: memberId,
-    },
-  })
+    await prisma.auditLog.create({
+      data: {
+        userId: session.user.id,
+        action: "RESTORE_MEMBER",
+        entityType: "Member",
+        entityId: memberId,
+      },
+    })
 
-  revalidatePath("/members")
-  revalidatePath("/archive")
-  revalidatePath(`/members/${memberId}`)
+    revalidatePath("/members")
+    revalidatePath("/archive")
+    revalidatePath(`/members/${memberId}`)
+    return { success: true, memberId }
+  } catch (err) {
+    return {
+      success: false,
+      error: {
+        fieldErrors: {},
+        formErrors: [err instanceof Error ? err.message : "An unexpected error occurred during restore."],
+      },
+    }
+  }
 }
 
 export async function assignTrainer(

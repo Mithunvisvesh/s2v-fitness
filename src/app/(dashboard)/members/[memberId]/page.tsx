@@ -26,6 +26,8 @@ import { getTrainers } from "@/server/queries/users"
 import { TrainerAssignmentCard } from "@/components/member/trainer-assignment-card"
 import { getMemberDocuments } from "@/server/queries/documents"
 import { DocumentsTab } from "@/components/member/documents-tab"
+import { getMemberReportData } from "@/server/queries/reports"
+import { ReportDownloadButton } from "@/components/member/report-download-button"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
@@ -83,6 +85,7 @@ export default async function MemberProfilePage({ params }: PageProps) {
     consent,
     trainers,
     documents,
+    reportData,
   ] = await Promise.all([
     getMemberMeasurements(memberId),
     getLatestPARQ(memberId),
@@ -95,6 +98,7 @@ export default async function MemberProfilePage({ params }: PageProps) {
     showConsent ? getMemberConsent(memberId) : Promise.resolve(null),
     getTrainers(),
     getMemberDocuments(memberId),
+    getMemberReportData(memberId),
   ])
 
   const genderLabel = GENDER_OPTIONS.find((g) => g.value === member.gender)?.label ?? member.gender
@@ -107,7 +111,9 @@ export default async function MemberProfilePage({ params }: PageProps) {
     <div className="flex flex-col gap-6 p-6">
       <div className="grid gap-6 md:grid-cols-3">
         <div className="md:col-span-2">
-          <ProfileHeader member={member} canManage={canEdit} />
+          <ProfileHeader member={member} canManage={canEdit}>
+            <ReportDownloadButton data={reportData} />
+          </ProfileHeader>
         </div>
         <div>
           <TrainerAssignmentCard

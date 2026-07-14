@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db"
 import { Prisma } from "@prisma/client"
+import { auth } from "@/lib/auth"
 
 export interface MemberListParams {
   search?: string
@@ -115,4 +116,16 @@ export async function getStaffOptions() {
 export async function getSuggestedMembershipNo() {
   const count = await prisma.member.count()
   return `S2V-${String(count + 1).padStart(4, "0")}`
+}
+
+export async function getArchivedMembers(params: MemberListParams = {}) {
+  const session = await auth()
+  if (!session) {
+    throw new Error("Unauthorised: Access denied.")
+  }
+  const viewer = {
+    id: session.user.id,
+    role: session.user.role,
+  }
+  return getMembers(params, viewer, { archivedOnly: true })
 }
