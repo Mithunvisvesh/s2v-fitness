@@ -59,6 +59,28 @@ enum SleepQuality {
   BAD
 }
 
+enum MedicalConditionName {
+  CHRONIC_ILLNESS
+  RECENT_SURGERY
+  PREGNANCY
+  BREASTFEEDING
+  BREATHING_LUNG
+  MUSCULOSKELETAL_INJURY
+  ARTHRITIS
+  DIABETES
+  THYROID
+  OBESITY
+  HIGH_CHOLESTEROL
+  FAMILY_HEART_HISTORY
+  HERNIA
+  FREQUENT_HEADACHES
+  FREQUENT_RESPIRATORY
+  DEPRESSION_BIPOLAR_SAD
+  CIRCULATORY
+  DIGESTIVE
+  OTHER
+}
+
 // ---- Core Tables ----
 
 model User {
@@ -74,6 +96,13 @@ model User {
   trainerMembers    Member[]  @relation("TrainerMembers")
   counsellingNotes  CounsellingNote[]
   auditLogs         AuditLog[]
+
+  parQAssessments      PARQ[]             @relation("AssessorPARQ")
+  lifestyleProfiles    LifestyleProfile[] @relation("AssessorLifestyle")
+  medicalAssessments   MedicalCondition[] @relation("AssessorMedical")
+  menstrualAssessments MenstrualHistory[] @relation("AssessorMenstrual")
+  posturalAssessments  PosturalAnalysis[] @relation("AssessorPostural")
+  fitnessAssessments   FitnessTest[]      @relation("AssessorFitness")
 }
 
 model Member {
@@ -105,13 +134,13 @@ model Member {
   fitnessGoals    FitnessGoal[]
 
   // Related assessments
-  parQ             PARQ?
-  lifestyle        LifestyleProfile?
+  parQAssessments     PARQ[]             @relation("MemberPARQ")
+  lifestyleProfiles   LifestyleProfile[] @relation("MemberLifestyle")
   medicalConditions MedicalCondition[]
-  menstrualHistory MenstrualHistory?
-  posturalAnalysis PosturalAnalysis?
-  fitnessTests     FitnessTest[]
-  measurements     Measurement[]
+  menstrualHistories  MenstrualHistory[] @relation("MemberMenstrual")
+  posturalAnalyses    PosturalAnalysis[] @relation("MemberPostural")
+  fitnessTests        FitnessTest[]      @relation("MemberFitness")
+  measurements        Measurement[]
   counsellingNotes CounsellingNote[]
   documents        Document[]
   consent          Consent?
@@ -136,76 +165,121 @@ model FitnessGoal {
 }
 
 model PARQ {
-  id          String @id @default(cuid())
-  memberId    String @unique
-  member      Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  id       String  @id @default(cuid())
+  memberId String
+  member   Member  @relation("MemberPARQ", fields: [memberId], references: [id], onDelete: Cascade)
 
-  q1_heartTrouble                Boolean
-  q2_chestPain                  Boolean
-  q3_dizzinessFainting          Boolean
-  q4_highBloodPressure          Boolean
-  q5_boneJointProblems          Boolean
-  q6_otherReasons               Boolean
-  q7_over45Unaccustomed         Boolean
-  requiresMedicalClearance      Boolean @default(false)
-  createdAt    DateTime @default(now())
+  assessedAt               DateTime  @default(now())
+  assessorId               String?
+  assessor                 User?     @relation("AssessorPARQ", fields: [assessorId], references: [id])
+
+  q1_heartTrouble          Boolean   @default(false)
+  q2_chestPain             Boolean   @default(false)
+  q3_dizzinessFainting     Boolean   @default(false)
+  q4_highBloodPressure     Boolean   @default(false)
+  q5_boneJointProblems     Boolean   @default(false)
+  q6_otherReasons          Boolean   @default(false)
+  q7_over45Unaccustomed    Boolean   @default(false)
+
+  medicalClearanceRequired Boolean   @default(false)
+  notes                    String?   @db.Text
+
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+
+  @@index([memberId])
+  @@index([assessedAt])
 }
 
 model LifestyleProfile {
-  id                     String @id @default(cuid())
-  memberId               String @unique
-  member                 Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  id       String  @id @default(cuid())
+  memberId String
+  member   Member  @relation("MemberLifestyle", fields: [memberId], references: [id], onDelete: Cascade)
 
-  occupation             String?
-  physicalActivityLevel  PhysicalActivityLevel?
-  workStress             StressLevel?
-  personalStress         StressLevel?
-  travelFrequency        String?   // Rare, Frequent, etc.
+  assessedAt              DateTime               @default(now())
+  assessorId              String?
+  assessor                User?                  @relation("AssessorLifestyle", fields: [assessorId], references: [id])
 
-  avgSleepHours          Float?
-  sleepQuality           SleepQuality?
-  sleepTiming            String?
-  afternoonNap           Boolean?
-  napDuration            String?
+  occupation              String?
+  physicalActivityLevel   PhysicalActivityLevel?
+  workStress              StressLevel?
+  personalStress          StressLevel?
+  travelFrequency         String?
 
-  smoking                Boolean?
-  smokingFrequency       String?
-  alcohol                Boolean?
-  alcoholFrequency       String?
-  tobacco                Boolean?
-  tobaccoFrequency       String?
+  avgSleepHours           Float?
+  sleepQuality            SleepQuality?
+  sleepTiming             String?
+  afternoonNap            Boolean?
+  napDuration             String?
 
-  createdAt              DateTime @default(now())
+  smoking                 Boolean?
+  smokingFrequency        String?
+  alcohol                 Boolean?
+  alcoholFrequency        String?
+  tobacco                 Boolean?
+  tobaccoFrequency        String?
+
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  @@index([memberId])
+  @@index([assessedAt])
 }
 
 model MedicalCondition {
-  id                String @id @default(cuid())
-  memberId          String
-  member            Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
-  conditionName     String
-  details           String?
-  notes             String?
-  createdAt         DateTime @default(now())
+  id            String               @id @default(cuid())
+  memberId      String
+  member        Member               @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  assessedAt    DateTime             @default(now())
+  assessorId    String?
+  assessor      User?                @relation("AssessorMedical", fields: [assessorId], references: [id])
+
+  conditionName MedicalConditionName
+  customName    String?
+  details       String?              @db.Text
+  notes         String?              @db.Text
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([memberId, conditionName, assessedAt])
+  @@index([memberId])
 }
 
 model MenstrualHistory {
-  id                            String @id @default(cuid())
-  memberId                      String @unique
-  member                        Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  id       String  @id @default(cuid())
+  memberId String
+  member   Member  @relation("MemberMenstrual", fields: [memberId], references: [id], onDelete: Cascade)
 
-  lastCycleDate                 DateTime?
-  ageAtMenstruationOnset        Int?
-  averageCycleLength            Int?
-  irregularCycles               Boolean?
-  spotting                      Boolean?
-  missedCycles                  Boolean?
-  painfulMenstruation           Boolean?
+  assessedAt               DateTime  @default(now())
+  assessorId               String?
+  assessor                 User?     @relation("AssessorMenstrual", fields: [assessorId], references: [id])
+
+  lastCycleDate            DateTime?
+  ageAtMenstruationOnset   Int?
+  averageCycleLength       Int?
+  irregularCycles          Boolean?
+  spotting                 Boolean?
+  missedCycles             Boolean?
+  painfulMenstruation      Boolean?
+  notes                    String?   @db.Text
+
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+
+  @@index([memberId])
+  @@index([assessedAt])
 }
 
 model PosturalAnalysis {
   id                    String @id @default(cuid())
-  memberId              String @unique
-  member                Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  memberId              String
+  member                Member @relation("MemberPostural", fields: [memberId], references: [id], onDelete: Cascade)
+
+  assessedAt            DateTime @default(now())
+  assessorId            String?
+  assessor              User?    @relation("AssessorPostural", fields: [assessorId], references: [id])
 
   neckFlexion           String?
   neckLateralFlexion    String?
@@ -232,13 +306,19 @@ model PosturalAnalysis {
   trainerNotes          String?
 
   createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([memberId])
+  @@index([assessedAt])
 }
 
 model FitnessTest {
   id                  String @id @default(cuid())
   memberId            String
-  member              Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  member              Member @relation("MemberFitness", fields: [memberId], references: [id], onDelete: Cascade)
   testDate            DateTime @default(now())
+  assessorId          String?
+  assessor            User?    @relation("AssessorFitness", fields: [assessorId], references: [id])
 
   // Cardiovascular
   cardioMachine       String?
@@ -270,6 +350,10 @@ model FitnessTest {
   lStandingBalance    String?
 
   createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([memberId])
+  @@index([testDate])
 }
 
 model Measurement {

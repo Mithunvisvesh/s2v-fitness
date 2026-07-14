@@ -1,0 +1,239 @@
+"use client"
+
+import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { toast } from "sonner"
+import {
+  consentSchema,
+  type ConsentFormValues,
+} from "@/lib/validations/counselling-consent"
+import { saveConsent } from "@/server/actions/counselling-consent"
+import { toDateInputValue, formatDate } from "@/lib/utils"
+
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
+import { ShieldAlert, CheckCircle } from "lucide-react"
+
+interface ConsentTabProps {
+  memberId: string
+  role: string
+  consent: {
+    id: string
+    emergencyContactName: string | null
+    emergencyMobile: string | null
+    relationship: string | null
+    consentDate: Date
+    digitalSignature: string | null
+  } | null
+  onSuccess?: () => void
+}
+
+export function ConsentTab({ memberId, role, consent, onSuccess }: ConsentTabProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const isTrainer = role === "TRAINER"
+
+  const form = useForm<ConsentFormValues>({
+    resolver: zodResolver(consentSchema),
+    defaultValues: {
+      emergencyContactName: consent?.emergencyContactName ?? "",
+      emergencyMobile: consent?.emergencyMobile ?? "",
+      relationship: consent?.relationship ?? "",
+      consentDate: consent?.consentDate ? new Date(consent.consentDate) : new Date(),
+      acknowledged: !!consent,
+    },
+  })
+
+  async function onSubmit(values: ConsentFormValues) {
+    setIsSubmitting(true)
+    try {
+      const result = await saveConsent(memberId, values)
+      if (!result.success) {
+        Object.entries(result.error.fieldErrors).forEach(([f, msgs]) => {
+          if (msgs?.[0]) {
+            form.setError(f as keyof ConsentFormValues, { message: msgs[0] })
+          }
+        })
+        toast.error(result.error.formErrors[0] || "Fix the highlighted fields.")
+        return
+      }
+      toast.success("Consent form details saved successfully.")
+      onSuccess?.()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "An unexpected error occurred.")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  // Trainers are blocked from the Consent Form entirely
+  if (isTrainer) {
+    return (
+      <Card className="border-destructive/50 bg-destructive/5">
+        <CardHeader className="flex flex-row items-center space-x-3 space-y-0">
+          <ShieldAlert className="h-6 w-6 text-destructive" />
+          <div>
+            <CardTitle className="text-destructive">Access Denied</CardTitle>
+            <CardDescription className="text-destructive/80">
+              Trainers are not authorized to view or manage member consent details.
+            </CardDescription>
+          </div>
+        </CardHeader>
+      </Card>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      {consent ? (
+        <Card className="border-primary/30 bg-primary/5">
+          <CardHeader className="flex flex-row items-center space-x-3 space-y-0 pb-4">
+            <CheckCircle className="h-6 w-6 text-primary" />
+            <div>
+              <CardTitle className="text-base text-primary">Member Consent Active</CardTitle>
+              <CardDescription>
+                A signed digital consent record is active for this member.
+              </CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent className="text-sm space-y-2">
+            <p><strong>Signed Date:</strong> {formatDate(consent.consentDate)}</p>
+            <p><strong>Emergency Contact:</strong> {consent.emergencyContactName}</p>
+            <p><strong>Mobile:</strong> {consent.emergencyMobile}</p>
+            <p><strong>Relationship:</strong> {consent.relationship}</p>
+            <p><strong>Acknowledgement:</strong> Accepted via electronic checkbox signature.</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="border-warning/30 bg-warning/5">
+          <CardHeader className="flex flex-row items-center space-x-3 space-y-0 pb-4">
+            <ShieldAlert className="h-6 w-6 text-warning" />
+            <div>
+              <CardTitle className="text-base text-warning">Consent Pending</CardTitle>
+              <CardDescription>
+                This member has no digital consent record on file.
+              </CardDescription>
+            </div>
+          </CardHeader>
+        </Card>
+      )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">
+            {consent ? "Update Consent Details" : "Record Member Consent & Waiver"}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <div className="grid gap-4 sm:grid-cols-2">
+                {/* Emergency Contact Name */}
+                <FormField
+                  control={form.control}
+                  name="emergencyContactName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Emergency Contact Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Full name of emergency contact" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Emergency Contact Mobile */}
+                <FormField
+                  control={form.control}
+                  name="emergencyMobile"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Emergency Contact Mobile</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Mobile number" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Relationship */}
+                <FormField
+                  control={form.control}
+                  name="relationship"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Relationship to Member</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. Spouse, Parent, Friend" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Consent Date */}
+                <FormField
+                  control={form.control}
+                  name="consentDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Signature / Signing Date</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="date"
+                          value={toDateInputValue(field.value)}
+                          onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : new Date())}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Acknowledgement Checkbox */}
+              <FormField
+                control={form.control}
+                name="acknowledged"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value === true}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel className="cursor-pointer font-normal text-muted-foreground leading-normal">
+                        I hereby acknowledge that the member has signed the hardcopy health questionnaire and release waiver, and they confirm the emergency details listed above are correct.
+                      </FormLabel>
+                      <FormMessage />
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex justify-end">
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? "Saving..." : (consent ? "Update Consent" : "Confirm & Save Consent")}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}

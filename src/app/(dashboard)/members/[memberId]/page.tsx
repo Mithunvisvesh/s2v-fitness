@@ -1,19 +1,30 @@
 import React from "react"
 import { notFound } from "next/navigation"
 import {
-  ClipboardList,
-  Activity,
-  Moon,
-  Stethoscope,
-  Ruler,
-  StickyNote,
   FolderOpen,
-  Dumbbell,
 } from "lucide-react"
 
 import { auth } from "@/lib/auth"
 import { getMemberById } from "@/server/queries/members"
 import { getMemberMeasurements } from "@/server/queries/measurements"
+import { ScreeningTab } from "@/components/member/screening/screening-tab"
+import {
+  getLatestPARQ,
+  getLatestLifestyleProfile,
+  getLatestMedicalConditions,
+  getLatestMenstrualHistory,
+} from "@/server/queries/fitness-screening"
+import {
+  getLatestPosturalAnalysis,
+  getLatestFitnessTest,
+} from "@/server/queries/fitness-testing"
+import { AssessmentsTab } from "@/components/member/assessments/assessments-tab"
+import { CounsellingTab } from "@/components/member/counselling-tab"
+import { ConsentTab } from "@/components/member/consent-tab"
+import {
+  getCounsellingNotes,
+  getMemberConsent,
+} from "@/server/queries/counselling-consent"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
@@ -41,10 +52,9 @@ function InfoRow({ label, value, children }: { label: string; value?: React.Reac
 
 export default async function MemberProfilePage({ params }: PageProps) {
   const { memberId } = await params
-  const [session, member, measurements] = await Promise.all([
+  const [session, member] = await Promise.all([
     auth(),
     getMemberById(memberId),
-    getMemberMeasurements(memberId),
   ])
 
   if (!member) notFound()
@@ -57,6 +67,31 @@ export default async function MemberProfilePage({ params }: PageProps) {
   if (role === "TRAINER" && member.trainerId !== userId) notFound()
 
   const canEdit = role === "ADMIN" || role === "COUNSELLOR"
+
+  const showMenstrual = member.gender === "FEMALE" && role !== "TRAINER"
+  const showConsent = role !== "TRAINER"
+
+  const [
+    measurements,
+    latestParq,
+    latestLifestyle,
+    latestMedical,
+    latestMenstrual,
+    latestPostural,
+    latestFitnessTest,
+    counsellingNotes,
+    consent,
+  ] = await Promise.all([
+    getMemberMeasurements(memberId),
+    getLatestPARQ(memberId),
+    getLatestLifestyleProfile(memberId),
+    getLatestMedicalConditions(memberId),
+    showMenstrual ? getLatestMenstrualHistory(memberId) : Promise.resolve(null),
+    getLatestPosturalAnalysis(memberId),
+    getLatestFitnessTest(memberId),
+    getCounsellingNotes(memberId),
+    showConsent ? getMemberConsent(memberId) : Promise.resolve(null),
+  ])
 
   const genderLabel = GENDER_OPTIONS.find((g) => g.value === member.gender)?.label ?? member.gender
   const maritalLabel = member.maritalStatus
@@ -73,13 +108,10 @@ export default async function MemberProfilePage({ params }: PageProps) {
           <TabsTrigger value="personal">Personal</TabsTrigger>
           <TabsTrigger value="membership">Membership</TabsTrigger>
           <TabsTrigger value="screening">Screening</TabsTrigger>
-          <TabsTrigger value="lifestyle">Lifestyle</TabsTrigger>
-          <TabsTrigger value="medical">Medical</TabsTrigger>
-          <TabsTrigger value="menstrual">Menstrual</TabsTrigger>
-          <TabsTrigger value="postural">Postural</TabsTrigger>
-          <TabsTrigger value="fitness">Fitness Tests</TabsTrigger>
+          <TabsTrigger value="assessments">Assessments</TabsTrigger>
           <TabsTrigger value="measurements">Measurements</TabsTrigger>
           <TabsTrigger value="notes">Notes</TabsTrigger>
+          {role !== "TRAINER" && <TabsTrigger value="consent">Consent</TabsTrigger>}
           <TabsTrigger value="documents">Documents</TabsTrigger>
         </TabsList>
 
@@ -138,30 +170,24 @@ export default async function MemberProfilePage({ params }: PageProps) {
           </Card>
         </TabsContent>
 
-        {/* ── 3–8. Modules not yet built ──────────────────────────────── */}
+        {/* ── 3. Screening ────────────────────────────────────────────── */}
         <TabsContent value="screening" className="mt-4">
-          <EmptyModuleTab icon={ClipboardList} title="Fitness screening not recorded"
-            description="PAR-Q and fitness screening questions will appear here once filled in." />
+          <ScreeningTab
+            memberId={memberId}
+            memberGender={member.gender}
+            role={role}
+            latestParq={latestParq}
+            latestLifestyle={latestLifestyle}
+            latestMedical={latestMedical}
+            latestMenstrual={latestMenstrual}
+          />
         </TabsContent>
-        <TabsContent value="lifestyle" className="mt-4">
-          <EmptyModuleTab icon={Activity} title="Lifestyle profile not recorded"
-            description="Occupation, activity levels, sleep, and habit information will appear here." />
-        </TabsContent>
-        <TabsContent value="medical" className="mt-4">
-          <EmptyModuleTab icon={Stethoscope} title="Medical history not recorded"
-            description="Health conditions, notes, and medical clearance details will appear here." />
-        </TabsContent>
-        <TabsContent value="menstrual" className="mt-4">
-          <EmptyModuleTab icon={Moon} title="Menstrual history not recorded"
-            description="This section applies to female members. Cycle history will appear here." />
-        </TabsContent>
-        <TabsContent value="postural" className="mt-4">
-          <EmptyModuleTab icon={Ruler} title="Postural analysis not recorded"
-            description="Neck, spine, scapula, and lower-limb postural observations will appear here." />
-        </TabsContent>
-        <TabsContent value="fitness" className="mt-4">
-          <EmptyModuleTab icon={Dumbbell} title="Fitness tests not recorded"
-            description="Cardio, muscular endurance, flexibility, and balance test results will appear here." />
+        <TabsContent value="assessments" className="mt-4">
+          <AssessmentsTab
+            memberId={memberId}
+            latestPostural={latestPostural}
+            latestFitnessTest={latestFitnessTest}
+          />
         </TabsContent>
 
         {/* ── 9. Measurements (LIVE) ───────────────────────────────────── */}
@@ -176,9 +202,21 @@ export default async function MemberProfilePage({ params }: PageProps) {
 
         {/* ── 10–11. Remaining stubs ───────────────────────────────────── */}
         <TabsContent value="notes" className="mt-4">
-          <EmptyModuleTab icon={StickyNote} title="No counselling notes yet"
-            description="Session notes added by counsellors and trainers will appear here." />
+          <CounsellingTab
+            memberId={memberId}
+            role={role}
+            notes={counsellingNotes}
+          />
         </TabsContent>
+        {role !== "TRAINER" && (
+          <TabsContent value="consent" className="mt-4">
+            <ConsentTab
+              memberId={memberId}
+              role={role}
+              consent={consent}
+            />
+          </TabsContent>
+        )}
         <TabsContent value="documents" className="mt-4">
           <EmptyModuleTab icon={FolderOpen} title="No documents uploaded"
             description="Medical reports, diet plans, consent forms, and progress photos will appear here." />
