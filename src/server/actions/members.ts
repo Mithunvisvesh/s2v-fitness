@@ -280,3 +280,39 @@ export async function restoreMember(memberId: string) {
   revalidatePath("/archive")
   revalidatePath(`/members/${memberId}`)
 }
+
+export async function assignTrainer(
+  memberId: string,
+  trainerId: string | null
+): Promise<ActionResult> {
+  const session = await requireStaffSession()
+
+  try {
+    await prisma.member.update({
+      where: { id: memberId },
+      data: { trainerId: trainerId || null },
+    })
+
+    await prisma.auditLog.create({
+      data: {
+        userId: session.user.id,
+        action: "UPDATE_MEMBER_TRAINER",
+        entityType: "Member",
+        entityId: memberId,
+        details: { trainerId },
+      },
+    })
+
+    revalidatePath("/members")
+    revalidatePath(`/members/${memberId}`)
+    return { success: true, memberId }
+  } catch (err) {
+    return {
+      success: false,
+      error: {
+        fieldErrors: {},
+        formErrors: [err instanceof Error ? err.message : "An unexpected error occurred."],
+      },
+    }
+  }
+}

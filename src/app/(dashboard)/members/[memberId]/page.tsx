@@ -1,8 +1,5 @@
 import React from "react"
 import { notFound } from "next/navigation"
-import {
-  FolderOpen,
-} from "lucide-react"
 
 import { auth } from "@/lib/auth"
 import { getMemberById } from "@/server/queries/members"
@@ -25,12 +22,15 @@ import {
   getCounsellingNotes,
   getMemberConsent,
 } from "@/server/queries/counselling-consent"
+import { getTrainers } from "@/server/queries/users"
+import { TrainerAssignmentCard } from "@/components/member/trainer-assignment-card"
+import { getMemberDocuments } from "@/server/queries/documents"
+import { DocumentsTab } from "@/components/member/documents-tab"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { ProfileHeader } from "@/components/member/profile-header"
-import { EmptyModuleTab } from "@/components/member/empty-module-tab"
 import { MemberStatusBadge } from "@/components/member/status-badge"
 import { MeasurementsTab } from "@/components/measurements/measurements-tab"
 import { formatDate } from "@/lib/utils"
@@ -81,6 +81,8 @@ export default async function MemberProfilePage({ params }: PageProps) {
     latestFitnessTest,
     counsellingNotes,
     consent,
+    trainers,
+    documents,
   ] = await Promise.all([
     getMemberMeasurements(memberId),
     getLatestPARQ(memberId),
@@ -91,6 +93,8 @@ export default async function MemberProfilePage({ params }: PageProps) {
     getLatestFitnessTest(memberId),
     getCounsellingNotes(memberId),
     showConsent ? getMemberConsent(memberId) : Promise.resolve(null),
+    getTrainers(),
+    getMemberDocuments(memberId),
   ])
 
   const genderLabel = GENDER_OPTIONS.find((g) => g.value === member.gender)?.label ?? member.gender
@@ -101,7 +105,19 @@ export default async function MemberProfilePage({ params }: PageProps) {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <ProfileHeader member={member} canManage={canEdit} />
+      <div className="grid gap-6 md:grid-cols-3">
+        <div className="md:col-span-2">
+          <ProfileHeader member={member} canManage={canEdit} />
+        </div>
+        <div>
+          <TrainerAssignmentCard
+            memberId={memberId}
+            currentTrainerId={member.trainerId}
+            trainers={trainers}
+            role={role}
+          />
+        </div>
+      </div>
 
       <Tabs defaultValue="personal">
         <TabsList className="flex w-full flex-wrap gap-1 h-auto p-1">
@@ -218,8 +234,11 @@ export default async function MemberProfilePage({ params }: PageProps) {
           </TabsContent>
         )}
         <TabsContent value="documents" className="mt-4">
-          <EmptyModuleTab icon={FolderOpen} title="No documents uploaded"
-            description="Medical reports, diet plans, consent forms, and progress photos will appear here." />
+          <DocumentsTab
+            memberId={memberId}
+            documents={documents}
+            role={role}
+          />
         </TabsContent>
       </Tabs>
     </div>

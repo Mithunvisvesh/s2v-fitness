@@ -103,6 +103,7 @@ model User {
   menstrualAssessments MenstrualHistory[] @relation("AssessorMenstrual")
   posturalAssessments  PosturalAnalysis[] @relation("AssessorPostural")
   fitnessAssessments   FitnessTest[]      @relation("AssessorFitness")
+  uploadedDocuments    Document[]         @relation("UploaderDocuments")
 }
 
 model Member {
@@ -414,6 +415,8 @@ model Document {
   fileType    String   // "pdf", "image", etc.
   category    String?  // Medical, Lab, Diet, Photo, Consent
   uploadedAt  DateTime @default(now())
+  uploaderId  String
+  uploader    User   @relation("UploaderDocuments", fields: [uploaderId], references: [id])
 }
 
 model Consent {
