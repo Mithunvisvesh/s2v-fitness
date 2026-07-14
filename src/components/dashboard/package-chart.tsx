@@ -28,7 +28,7 @@ export function PackageChart({ data }: PackageChartProps) {
   const total = data.reduce((sum, item) => sum + item.value, 0)
 
   return (
-    <Card className="col-span-3">
+    <Card className="col-span-3 hover:bg-muted/50 transition-colors">
       <CardHeader>
         <CardTitle className="text-base font-semibold">Package Distribution</CardTitle>
         <CardDescription>Members active by package tier</CardDescription>

@@ -84,7 +84,7 @@ export default async function MembersPage({ searchParams }: PageProps) {
   const page = Math.max(1, parseInt(params.page ?? "1", 10))
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="flex flex-col gap-6 p-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-heading text-2xl font-semibold">Members</h1>

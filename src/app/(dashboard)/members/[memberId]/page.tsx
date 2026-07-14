@@ -108,7 +108,7 @@ export default async function MemberProfilePage({ params }: PageProps) {
   const packageLabel = PACKAGE_OPTIONS.find((p) => p.value === member.package)?.label ?? member.package
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="flex flex-col gap-6 p-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
       <div className="grid gap-6 md:grid-cols-3">
         <div className="md:col-span-2">
           <ProfileHeader member={member} canManage={canEdit}>

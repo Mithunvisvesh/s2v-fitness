@@ -24,7 +24,7 @@ export default async function DashboardPage() {
   ])
 
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-6">
+    <div className="flex flex-col gap-6 p-4 md:p-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
       <div>
         <h1 className="font-heading text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground text-sm">

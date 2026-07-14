@@ -53,8 +53,7 @@ function toWHRData(measurements: MeasurementData[]): ChartPoint[] {
     .filter((p) => p.value !== null)
 }
 
-const LINE_COLOR = "hsl(var(--primary, 220 90% 56%))"
-const GRID_COLOR = "hsl(var(--border, 220 13% 91%))"
+
 
 function ProgressChart({
   title,
@@ -89,9 +88,9 @@ function ProgressChart({
   }
 
   return (
-    <Card>
+    <Card className="hover:bg-muted/50 transition-colors">
       <CardHeader>
-        <CardTitle className="text-base">{title}</CardTitle>
+        <CardTitle className="text-base font-semibold">{title}</CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={180}>
@@ -99,16 +98,16 @@ function ProgressChart({
             data={data}
             margin={{ top: 4, right: 8, left: -16, bottom: 0 }}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
             <XAxis
               dataKey="date"
-              tick={{ fontSize: 11 }}
+              tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
               tickLine={false}
               axisLine={false}
             />
             <YAxis
               domain={domain ?? ["auto", "auto"]}
-              tick={{ fontSize: 11 }}
+              tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
               tickLine={false}
               axisLine={false}
               tickFormatter={(v) => `${v}`}
@@ -118,7 +117,9 @@ function ProgressChart({
               contentStyle={{
                 fontSize: 12,
                 borderRadius: 8,
-                border: "1px solid hsl(var(--border))",
+                backgroundColor: "var(--background)",
+                border: "1px solid var(--border)",
+                color: "var(--foreground)",
               }}
             />
             {referenceValue !== undefined && (
@@ -130,15 +131,16 @@ function ProgressChart({
                   value: referenceLabel ?? "",
                   position: "right",
                   fontSize: 10,
+                  fill: "var(--muted-foreground)",
                 }}
               />
             )}
             <Line
               type="monotone"
               dataKey="value"
-              stroke={LINE_COLOR}
+              stroke="var(--primary)"
               strokeWidth={2}
-              dot={{ r: 3, fill: LINE_COLOR }}
+              dot={{ r: 3, fill: "var(--primary)" }}
               activeDot={{ r: 5 }}
             />
           </LineChart>

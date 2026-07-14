@@ -20,7 +20,7 @@ interface RegistrationChartProps {
 
 export function RegistrationChart({ data }: RegistrationChartProps) {
   return (
-    <Card className="col-span-4">
+    <Card className="col-span-4 hover:bg-muted/50 transition-colors">
       <CardHeader>
         <CardTitle className="text-base font-semibold">Registration Trends</CardTitle>
         <CardDescription>Monthly member registrations (Last 6 Months)</CardDescription>
@@ -34,17 +34,17 @@ export function RegistrationChart({ data }: RegistrationChartProps) {
           ) : (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted/40" />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                 <XAxis
                   dataKey="month"
-                  stroke="#888888"
-                  fontSize={12}
+                  stroke="var(--muted-foreground)"
+                  fontSize={11}
                   tickLine={false}
                   axisLine={false}
                 />
                 <YAxis
-                  stroke="#888888"
-                  fontSize={12}
+                  stroke="var(--muted-foreground)"
+                  fontSize={11}
                   tickLine={false}
                   axisLine={false}
                   tickFormatter={(value) => `${value}`}
