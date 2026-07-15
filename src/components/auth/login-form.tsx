@@ -30,9 +30,10 @@ export function LoginForm() {
   }
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader>
-        <CardTitle className="text-center text-2xl">S2V Fitness Centre</CardTitle>
+    <Card className="w-full border border-border/50 shadow-xl bg-card/60 backdrop-blur-md">
+      <CardHeader className="space-y-1 pb-6">
+        <CardTitle className="text-center font-heading text-2xl font-bold tracking-tight">S2V Fitness Centre</CardTitle>
+        <p className="text-center text-xs text-muted-foreground">Sign in to your staff account</p>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
