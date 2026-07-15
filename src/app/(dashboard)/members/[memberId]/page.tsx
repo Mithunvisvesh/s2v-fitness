@@ -40,6 +40,7 @@ import { PACKAGE_OPTIONS, MARITAL_STATUS_OPTIONS, GENDER_OPTIONS } from "@/lib/c
 
 interface PageProps {
   params: Promise<{ memberId: string }>
+  searchParams: Promise<{ tab?: string }>
 }
 
 function InfoRow({ label, value, children }: { label: string; value?: React.ReactNode; children?: React.ReactNode }) {
@@ -52,8 +53,10 @@ function InfoRow({ label, value, children }: { label: string; value?: React.Reac
   )
 }
 
-export default async function MemberProfilePage({ params }: PageProps) {
+export default async function MemberProfilePage({ params, searchParams }: PageProps) {
   const { memberId } = await params
+  const { tab } = await searchParams
+  const defaultTab = tab ?? "personal"
   const [session, member] = await Promise.all([
     auth(),
     getMemberById(memberId),
@@ -125,7 +128,7 @@ export default async function MemberProfilePage({ params }: PageProps) {
         </div>
       </div>
 
-      <Tabs defaultValue="personal">
+      <Tabs defaultValue={defaultTab}>
         <TabsList className="flex w-full flex-wrap gap-1 h-auto p-1">
           <TabsTrigger value="personal">Personal</TabsTrigger>
           <TabsTrigger value="membership">Membership</TabsTrigger>

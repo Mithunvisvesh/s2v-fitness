@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
+import { redirect } from "next/navigation"
+import { Prisma } from "@prisma/client"
 
 /**
  * Enforces staff access rights for Report generation:
@@ -77,3 +79,53 @@ export async function getMemberReportData(memberId: string) {
   }
 }
 export type MemberReportData = Awaited<ReturnType<typeof getMemberReportData>>
+
+export async function getMembersForReports(params: { search?: string; page?: number }) {
+  const session = await auth()
+  if (!session || !session.user) {
+    redirect("/login")
+  }
+
+  const role = session.user.role
+  const userId = session.user.id
+
+  const page = Math.max(1, params.page ?? 1)
+  const pageSize = 10
+
+  const where: Prisma.MemberWhereInput = {
+    status: { not: "ARCHIVED" }
+  }
+
+  if (role === "TRAINER") {
+    where.trainerId = userId
+  }
+
+  if (params.search) {
+    const q = params.search.trim()
+    if (q) {
+      where.OR = [
+        { fullName: { contains: q, mode: "insensitive" } },
+        { membershipNo: { contains: q, mode: "insensitive" } },
+      ]
+    }
+  }
+
+  const [members, total] = await Promise.all([
+    prisma.member.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      select: { id: true }
+    }),
+    prisma.member.count({ where })
+  ])
+
+  return {
+    members,
+    total,
+    page,
+    pageSize,
+    pageCount: Math.ceil(total / pageSize)
+  }
+}
