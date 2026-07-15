@@ -6,6 +6,8 @@ import { supabase } from "@/lib/supabase"
 import { revalidatePath } from "next/cache"
 
 const ALLOWED_ROLES = ["ADMIN", "COUNSELLOR"]
+const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024 // 10MB
+const ALLOWED_MIME_TYPES = ["application/pdf", "image/jpeg", "image/png", "image/webp"]
 
 type ActionResult =
   | { success: true; documentId: string }
@@ -57,6 +59,26 @@ export async function uploadDocument(
       success: false,
       error: {
         fieldErrors: { file: ["No file provided or file is empty."] },
+        formErrors: [],
+      },
+    }
+  }
+
+  if (file.size > MAX_FILE_SIZE_BYTES) {
+    return {
+      success: false,
+      error: {
+        fieldErrors: { file: ["File size exceeds the 10 MB limit."] },
+        formErrors: [],
+      },
+    }
+  }
+
+  if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+    return {
+      success: false,
+      error: {
+        fieldErrors: { file: ["Unsupported file type. Only PDF, JPEG, PNG, and WEBP are allowed."] },
         formErrors: [],
       },
     }

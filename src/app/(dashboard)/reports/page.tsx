@@ -1,5 +1,5 @@
 import { Suspense } from "react"
-import { getMembersForReports, getMemberReportData } from "@/server/queries/reports"
+import { getMembersForReports } from "@/server/queries/reports"
 import { Skeleton } from "@/components/ui/skeleton"
 import { MemberFilters } from "@/components/member/member-filters"
 import { PaginationControls } from "@/components/member/pagination-controls"
@@ -34,14 +34,6 @@ async function ReportsListContent({
   const result = await getMembersForReports({ search, page })
   const hasFilters = !!search
 
-  // Fetch report data for all listed members in parallel
-  const reportsData = await Promise.all(
-    result.members.map(async (m) => {
-      const data = await getMemberReportData(m.id)
-      return { memberId: m.id, data }
-    })
-  )
-
   return (
     <>
       <div className="overflow-x-auto">
@@ -63,15 +55,14 @@ async function ReportsListContent({
               </TableRow>
             ) : (
               result.members.map((m) => {
-                const report = reportsData.find((r) => r.memberId === m.id)?.data
                 return (
                   <TableRow key={m.id} className="hover:bg-muted/50 transition-colors">
-                    <TableCell className="font-medium">{report?.member.fullName}</TableCell>
-                    <TableCell>{report?.member.membershipNo}</TableCell>
-                    <TableCell>{report?.member.trainer?.name ?? <span className="text-muted-foreground">—</span>}</TableCell>
+                    <TableCell className="font-medium">{m.fullName}</TableCell>
+                    <TableCell>{m.membershipNo}</TableCell>
+                    <TableCell>{m.trainer?.name ?? <span className="text-muted-foreground">—</span>}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end">
-                        {report && <ReportDownloadButton data={report} />}
+                        <ReportDownloadButton memberId={m.id} />
                       </div>
                     </TableCell>
                   </TableRow>

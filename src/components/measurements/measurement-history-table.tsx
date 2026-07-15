@@ -70,8 +70,12 @@ export function MeasurementHistoryTable({
   function handleDelete() {
     if (!deleteId) return
     startTransition(async () => {
-      await deleteMeasurement(deleteId, memberId)
-      toast.success("Measurement deleted.")
+      const res = await deleteMeasurement(deleteId, memberId)
+      if (!res.success) {
+        toast.error(res.error.formErrors[0] || "Failed to delete measurement.")
+      } else {
+        toast.success("Measurement deleted.")
+      }
       setDeleteId(null)
       router.refresh()
     })

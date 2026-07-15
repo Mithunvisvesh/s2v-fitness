@@ -65,8 +65,9 @@ Follow these steps to set up and run the project locally.
 3.  **Configure environment variables**:
     Create a `.env` file in the root directory and populate it with your local configurations (refer to `.env.example`):
     ```env
-    # Database Configuration
+    # Database Configuration (DATABASE_URL represents the pooled connection, DIRECT_URL represents the unpooled connection required for migrations; both must be configured in hosting providers like Vercel)
     DATABASE_URL="postgresql://username:password@localhost:5432/s2v_fitness?schema=public"
+    DIRECT_URL="postgresql://username:password@localhost:5432/s2v_fitness?schema=public"
 
     # Authentication Configuration
     AUTH_SECRET="your-next-auth-secret-key"

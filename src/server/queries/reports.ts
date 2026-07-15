@@ -116,7 +116,12 @@ export async function getMembersForReports(params: { search?: string; page?: num
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * pageSize,
       take: pageSize,
-      select: { id: true }
+      select: {
+        id: true,
+        fullName: true,
+        membershipNo: true,
+        trainer: { select: { name: true } }
+      }
     }),
     prisma.member.count({ where })
   ])

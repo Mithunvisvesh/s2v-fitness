@@ -12,12 +12,68 @@ type ActionResult =
   | { success: true; measurementId: string }
   | { success: false; error: { fieldErrors: Record<string, string[] | undefined>; formErrors: string[] } }
 
-async function requireSession() {
-  const session = await auth()
-  if (!session || !ALLOWED_ROLES.includes(session.user.role)) {
-    throw new Error("Unauthorised")
+interface CustomSession {
+  user: {
+    id: string
+    name: string
+    email: string
+    role: string
   }
-  return session
+}
+
+type MutateAuthResult =
+  | { success: true; session: CustomSession }
+  | { success: false; actionResult: ActionResult }
+
+async function checkMutateAuth(memberId: string): Promise<MutateAuthResult> {
+  const session = (await auth()) as CustomSession | null
+  if (!session || !ALLOWED_ROLES.includes(session.user.role)) {
+    return {
+      success: false,
+      actionResult: {
+        success: false,
+        error: {
+          fieldErrors: {},
+          formErrors: ["You must be logged in to perform this action."],
+        },
+      },
+    }
+  }
+
+  const { role, id: userId } = session.user
+
+  if (role === "TRAINER") {
+    const member = await prisma.member.findUnique({
+      where: { id: memberId },
+      select: { trainerId: true },
+    })
+    if (!member) {
+      return {
+        success: false,
+        actionResult: {
+          success: false,
+          error: {
+            fieldErrors: {},
+            formErrors: ["Member not found."],
+          },
+        },
+      }
+    }
+    if (member.trainerId !== userId) {
+      return {
+        success: false,
+        actionResult: {
+          success: false,
+          error: {
+            fieldErrors: {},
+            formErrors: ["You don't have permission to modify records for this member."],
+          },
+        },
+      }
+    }
+  }
+
+  return { success: true, session }
 }
 
 function revalidateMember(memberId: string) {
@@ -64,7 +120,11 @@ export async function createMeasurement(
   values: MeasurementFormValues,
   memberGender: string
 ): Promise<ActionResult> {
-  const session = await requireSession()
+  const authCheck = await checkMutateAuth(memberId)
+  if (!authCheck.success) {
+    return authCheck.actionResult
+  }
+  const session = authCheck.session
 
   const parsed = measurementSchema.safeParse(values)
   if (!parsed.success) {
@@ -94,7 +154,11 @@ export async function updateMeasurement(
   values: MeasurementFormValues,
   memberGender: string
 ): Promise<ActionResult> {
-  const session = await requireSession()
+  const authCheck = await checkMutateAuth(memberId)
+  if (!authCheck.success) {
+    return authCheck.actionResult
+  }
+  const session = authCheck.session
 
   const parsed = measurementSchema.safeParse(values)
   if (!parsed.success) {
@@ -122,8 +186,12 @@ export async function updateMeasurement(
 export async function deleteMeasurement(
   measurementId: string,
   memberId: string
-): Promise<{ success: boolean }> {
-  const session = await requireSession()
+): Promise<ActionResult> {
+  const authCheck = await checkMutateAuth(memberId)
+  if (!authCheck.success) {
+    return authCheck.actionResult
+  }
+  const session = authCheck.session
 
   await prisma.measurement.delete({ where: { id: measurementId } })
 
@@ -137,5 +205,5 @@ export async function deleteMeasurement(
   })
 
   revalidateMember(memberId)
-  return { success: true }
+  return { success: true, measurementId }
 }
