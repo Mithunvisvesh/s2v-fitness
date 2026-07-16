@@ -50,7 +50,6 @@ interface StaffOption {
   id: string
   name: string
 }
-
 interface MemberFormProps {
   mode: "create" | "edit"
   memberId?: string
@@ -58,6 +57,7 @@ interface MemberFormProps {
   counsellors: StaffOption[]
   trainers: StaffOption[]
   showCounsellorField?: boolean
+  packages: { id: string; name: string; durationMonths: number; price: any }[]
 }
 
 function SectionHeading({ title, description }: { title: string; description?: string }) {
@@ -76,6 +76,7 @@ export function MemberForm({
   counsellors,
   trainers,
   showCounsellorField = true,
+  packages,
 }: MemberFormProps) {
   const router = useRouter()
 
@@ -99,10 +100,10 @@ export function MemberForm({
       fitnessGoals: [],
       counsellorId: "",
       trainerId: "",
+      packageId: "",
       ...defaultValues,
     },
   })
-
   const dateOfBirth = form.watch("dateOfBirth")
   const computedAge = dateOfBirth ? calculateAge(new Date(dateOfBirth)) : null
 
@@ -333,20 +334,37 @@ export function MemberForm({
           <CardContent className="grid gap-4 sm:grid-cols-2">
             <FormField
               control={form.control}
-              name="package"
+              name="packageId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Package</FormLabel>
-                  <Select value={field.value} onValueChange={field.onChange}>
+                  <Select
+                    value={field.value || ""}
+                    onValueChange={(val) => {
+                      field.onChange(val)
+                      const pkg = packages.find((p) => p.id === val)
+                      if (pkg) {
+                        form.setValue("durationMonths", pkg.durationMonths, { shouldValidate: true })
+
+                        // Map duration to standard package enum
+                        let enumVal: "MONTHLY" | "QUARTERLY" | "HALF_YEARLY" | "YEARLY" = "MONTHLY"
+                        if (pkg.durationMonths === 3) enumVal = "QUARTERLY"
+                        else if (pkg.durationMonths === 6) enumVal = "HALF_YEARLY"
+                        else if (pkg.durationMonths === 12) enumVal = "YEARLY"
+
+                        form.setValue("package", enumVal, { shouldValidate: true })
+                      }
+                    }}
+                  >
                     <FormControl>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select package" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {PACKAGE_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
+                      {packages.map((pkg) => (
+                        <SelectItem key={pkg.id} value={pkg.id}>
+                          {pkg.name} ({pkg.durationMonths} months {pkg.price !== null ? `· ₹${Number(pkg.price)}` : ""})
                         </SelectItem>
                       ))}
                     </SelectContent>

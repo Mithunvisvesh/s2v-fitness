@@ -114,7 +114,6 @@ function buildData(d: MeasurementFormValues, memberGender: string) {
     ratioIndicator: ratioIndicator ?? null,
   }
 }
-
 export async function createMeasurement(
   memberId: string,
   values: MeasurementFormValues,
@@ -131,17 +130,21 @@ export async function createMeasurement(
     return { success: false, error: parsed.error.flatten() }
   }
 
-  const measurement = await prisma.measurement.create({
-    data: { memberId, ...buildData(parsed.data, memberGender) },
-  })
+  const measurement = await prisma.$transaction(async (tx) => {
+    const meas = await tx.measurement.create({
+      data: { memberId, ...buildData(parsed.data, memberGender) },
+    })
 
-  await prisma.auditLog.create({
-    data: {
-      userId: session.user.id,
-      action: "CREATE_MEASUREMENT",
-      entityType: "Measurement",
-      entityId: measurement.id,
-    },
+    await tx.auditLog.create({
+      data: {
+        userId: session.user.id,
+        action: "CREATE_MEASUREMENT",
+        entityType: "Measurement",
+        entityId: meas.id,
+      },
+    })
+
+    return meas
   })
 
   revalidateMember(memberId)
@@ -165,18 +168,20 @@ export async function updateMeasurement(
     return { success: false, error: parsed.error.flatten() }
   }
 
-  await prisma.measurement.update({
-    where: { id: measurementId },
-    data: buildData(parsed.data, memberGender),
-  })
+  await prisma.$transaction(async (tx) => {
+    await tx.measurement.update({
+      where: { id: measurementId },
+      data: buildData(parsed.data, memberGender),
+    })
 
-  await prisma.auditLog.create({
-    data: {
-      userId: session.user.id,
-      action: "UPDATE_MEASUREMENT",
-      entityType: "Measurement",
-      entityId: measurementId,
-    },
+    await tx.auditLog.create({
+      data: {
+        userId: session.user.id,
+        action: "UPDATE_MEASUREMENT",
+        entityType: "Measurement",
+        entityId: measurementId,
+      },
+    })
   })
 
   revalidateMember(memberId)
@@ -193,15 +198,17 @@ export async function deleteMeasurement(
   }
   const session = authCheck.session
 
-  await prisma.measurement.delete({ where: { id: measurementId } })
+  await prisma.$transaction(async (tx) => {
+    await tx.measurement.delete({ where: { id: measurementId } })
 
-  await prisma.auditLog.create({
-    data: {
-      userId: session.user.id,
-      action: "DELETE_MEASUREMENT",
-      entityType: "Measurement",
-      entityId: measurementId,
-    },
+    await tx.auditLog.create({
+      data: {
+        userId: session.user.id,
+        action: "DELETE_MEASUREMENT",
+        entityType: "Measurement",
+        entityId: measurementId,
+      },
+    })
   })
 
   revalidateMember(memberId)

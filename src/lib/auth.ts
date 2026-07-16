@@ -62,7 +62,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           where: { email },
         })
 
-        if (!user) {
+        if (!user || !user.isActive) {
           trackFailure(email)
           return null
         }

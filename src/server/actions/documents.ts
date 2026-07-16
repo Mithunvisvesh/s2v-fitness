@@ -19,15 +19,39 @@ type ActionResult =
       }
     }
 
-/**
- * Enforces staff upload/delete permissions:
- * Only ADMIN or COUNSELLOR roles are allowed.
- */
 async function requireWriteAccess() {
   const session = await auth()
   if (!session || !ALLOWED_ROLES.includes(session.user.role)) {
     throw new Error("You don't have permission to perform this action.")
   }
+  return session
+}
+
+async function checkReadAccess(memberId: string) {
+  const session = await auth()
+  if (!session) {
+    throw new Error("You must be logged in to perform this action.")
+  }
+
+  const { role, id: userId } = session.user
+  const ALL_STAFF_ROLES = ["ADMIN", "COUNSELLOR", "TRAINER"]
+  if (!ALL_STAFF_ROLES.includes(role)) {
+    throw new Error("You don't have permission to perform this action.")
+  }
+
+  if (role === "TRAINER") {
+    const member = await prisma.member.findUnique({
+      where: { id: memberId },
+      select: { trainerId: true },
+    })
+    if (!member) {
+      throw new Error("Member not found.")
+    }
+    if (member.trainerId !== userId) {
+      throw new Error("You don't have permission to view records for this member.")
+    }
+  }
+
   return session
 }
 
@@ -52,13 +76,13 @@ export async function uploadDocument(
   }
 
   const file = formData.get("file") as File | null
-  const category = (formData.get("category") as string) || "General"
+  const category = formData.get("category") as string | null
 
-  if (!file || file.size === 0) {
+  if (!file) {
     return {
       success: false,
       error: {
-        fieldErrors: { file: ["No file provided or file is empty."] },
+        fieldErrors: { file: ["Please select a file to upload."] },
         formErrors: [],
       },
     }
@@ -68,7 +92,7 @@ export async function uploadDocument(
     return {
       success: false,
       error: {
-        fieldErrors: { file: ["File size exceeds the 10 MB limit."] },
+        fieldErrors: { file: ["File size exceeds the 10MB limit."] },
         formErrors: [],
       },
     }
@@ -87,7 +111,7 @@ export async function uploadDocument(
   try {
     const arrayBuffer = await file.arrayBuffer()
     const fileBuffer = Buffer.from(arrayBuffer)
-    
+
     // Construct unique path inside bucket: memberId/timestamp_filename
     const relativePath = `${memberId}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`
 
@@ -113,27 +137,30 @@ export async function uploadDocument(
       .from("documents")
       .getPublicUrl(relativePath)
 
-    // Save metadata to DB
-    const document = await prisma.document.create({
-      data: {
-        memberId,
-        fileName: file.name,
-        fileUrl: publicUrl,
-        fileType: file.type || "application/octet-stream",
-        category,
-        uploaderId: session.user.id,
-      },
-    })
+    // Save metadata to DB and Log action atomically
+    const document = await prisma.$transaction(async (tx) => {
+      const doc = await tx.document.create({
+        data: {
+          memberId,
+          fileName: file.name,
+          fileUrl: publicUrl,
+          fileType: file.type || "application/octet-stream",
+          category,
+          uploaderId: session.user.id,
+        },
+      })
 
-    // Log action
-    await prisma.auditLog.create({
-      data: {
-        userId: session.user.id,
-        action: "UPLOAD_DOCUMENT",
-        entityType: "Document",
-        entityId: document.id,
-        details: { fileName: file.name, category },
-      },
+      await tx.auditLog.create({
+        data: {
+          userId: session.user.id,
+          action: "UPLOAD_DOCUMENT",
+          entityType: "Document",
+          entityId: doc.id,
+          details: { fileName: file.name, category },
+        },
+      })
+
+      return doc
     })
 
     revalidatePath(`/members/${memberId}`)
@@ -202,20 +229,21 @@ export async function deleteDocument(
       }
     }
 
-    // Delete from DB
-    await prisma.document.delete({
-      where: { id: documentId },
-    })
+    // Delete from DB and Audit Log atomically
+    await prisma.$transaction(async (tx) => {
+      await tx.document.delete({
+        where: { id: documentId },
+      })
 
-    // Log action
-    await prisma.auditLog.create({
-      data: {
-        userId: session.user.id,
-        action: "DELETE_DOCUMENT",
-        entityType: "Document",
-        entityId: documentId,
-        details: { fileName: document.fileName },
-      },
+      await tx.auditLog.create({
+        data: {
+          userId: session.user.id,
+          action: "DELETE_DOCUMENT",
+          entityType: "Document",
+          entityId: documentId,
+          details: { fileName: document.fileName },
+        },
+      })
     })
 
     revalidatePath(`/members/${document.memberId}`)
@@ -228,5 +256,45 @@ export async function deleteDocument(
         formErrors: [err instanceof Error ? err.message : "An unexpected error occurred during deletion."],
       },
     }
+  }
+}
+
+/**
+ * Generates a signed URL for secure download/viewing of a document.
+ */
+export async function getSignedDocumentUrl(
+  documentId: string,
+  memberId: string
+): Promise<{ success: true; url: string } | { success: false; message: string }> {
+  try {
+    await checkReadAccess(memberId)
+
+    const document = await prisma.document.findFirst({
+      where: {
+        id: documentId,
+        memberId,
+      },
+    })
+
+    if (!document) {
+      return { success: false, message: "Document not found." }
+    }
+
+    // Extract relative path from stored URL
+    const pathParts = document.fileUrl.split("/documents/")
+    const relativePath = pathParts[pathParts.length - 1]
+
+    // Create signed URL valid for 1 hour (3600 seconds)
+    const { data, error } = await supabase.storage
+      .from("documents")
+      .createSignedUrl(relativePath, 3600)
+
+    if (error || !data?.signedUrl) {
+      return { success: false, message: error?.message || "Failed to create signed URL." }
+    }
+
+    return { success: true, url: data.signedUrl }
+  } catch (err: any) {
+    return { success: false, message: err.message || "An unexpected error occurred." }
   }
 }

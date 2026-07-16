@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
+import { Prisma } from "@prisma/client"
 
 interface CustomSession {
   user: {
@@ -37,7 +38,7 @@ export async function getDashboardMetrics() {
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
   const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
 
-  const [totalActive, newThisMonth, membersList] = await Promise.all([
+  const [totalActive, newThisMonth, pendingResult] = await Promise.all([
     // 1. Total Active
     prisma.member.count({
       where: {
@@ -57,25 +58,22 @@ export async function getDashboardMetrics() {
         ...trainerFilter,
       },
     }),
-    // 3. Get latest PARQ for all members under view context to check medical clearance
-    prisma.member.findMany({
-      where: {
-        archivedAt: null,
-        ...trainerFilter,
-      },
-      select: {
-        parQAssessments: {
-          orderBy: { assessedAt: "desc" },
-          take: 1,
-          select: { medicalClearanceRequired: true },
-        },
-      },
-    }),
+    // 3. Raw SQL to fetch and count members requiring medical clearance
+    prisma.$queryRaw<{ count: number }[]>`
+      SELECT COUNT(*)::int as count
+      FROM (
+        SELECT DISTINCT ON ("memberId") "memberId", "medicalClearanceRequired"
+        FROM "PARQ"
+        ORDER BY "memberId", "assessedAt" DESC
+      ) p
+      JOIN "Member" m ON m.id = p."memberId"
+      WHERE m."archivedAt" IS NULL
+        AND p."medicalClearanceRequired" = true
+        ${role === "TRAINER" ? Prisma.sql`AND m."trainerId" = ${userId}` : Prisma.empty}
+    `
   ])
 
-  const medicalClearancePending = membersList.filter(
-    (m) => m.parQAssessments[0]?.medicalClearanceRequired === true
-  ).length
+  const medicalClearancePending = pendingResult[0]?.count ?? 0
 
   return {
     totalActive,

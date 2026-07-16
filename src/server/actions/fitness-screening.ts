@@ -173,8 +173,6 @@ export async function savePARQ(
       select: { id: true },
     })
 
-    let parqId: string
-
     const dbData = {
       assessorId: session.user.id,
       q1_heartTrouble: parsed.data.q1_heartTrouble,
@@ -188,42 +186,46 @@ export async function savePARQ(
       notes: parsed.data.notes ?? null,
     }
 
-    if (existing) {
-      const updated = await prisma.pARQ.update({
-        where: { id: existing.id },
-        data: dbData,
-      })
-      parqId = updated.id
+    const parqId = await prisma.$transaction(async (tx) => {
+      if (existing) {
+        const updated = await tx.pARQ.update({
+          where: { id: existing.id },
+          data: dbData,
+        })
 
-      await prisma.auditLog.create({
-        data: {
-          userId: session.user.id,
-          action: "UPDATE_PARQ",
-          entityType: "PARQ",
-          entityId: parqId,
-          details: { assessedAt: parsed.data.assessedAt },
-        },
-      })
-    } else {
-      const created = await prisma.pARQ.create({
-        data: {
-          memberId,
-          assessedAt: parsed.data.assessedAt,
-          ...dbData,
-        },
-      })
-      parqId = created.id
+        await tx.auditLog.create({
+          data: {
+            userId: session.user.id,
+            action: "UPDATE_PARQ",
+            entityType: "PARQ",
+            entityId: updated.id,
+            details: { assessedAt: parsed.data.assessedAt },
+          },
+        })
 
-      await prisma.auditLog.create({
-        data: {
-          userId: session.user.id,
-          action: "CREATE_PARQ",
-          entityType: "PARQ",
-          entityId: parqId,
-          details: { assessedAt: parsed.data.assessedAt },
-        },
-      })
-    }
+        return updated.id
+      } else {
+        const created = await tx.pARQ.create({
+          data: {
+            memberId,
+            assessedAt: parsed.data.assessedAt,
+            ...dbData,
+          },
+        })
+
+        await tx.auditLog.create({
+          data: {
+            userId: session.user.id,
+            action: "CREATE_PARQ",
+            entityType: "PARQ",
+            entityId: created.id,
+            details: { assessedAt: parsed.data.assessedAt },
+          },
+        })
+
+        return created.id
+      }
+    })
 
     revalidatePath(`/members/${memberId}`)
     return { success: true, id: parqId }
@@ -258,9 +260,6 @@ export async function saveLifestyleProfile(
       },
       select: { id: true },
     })
-
-    let profileId: string
-
     const dbData = {
       assessorId: session.user.id,
       occupation: data.occupation ?? null,
@@ -281,42 +280,46 @@ export async function saveLifestyleProfile(
       tobaccoFrequency: data.tobaccoFrequency ?? null,
     }
 
-    if (existing) {
-      const updated = await prisma.lifestyleProfile.update({
-        where: { id: existing.id },
-        data: dbData,
-      })
-      profileId = updated.id
+    const profileId = await prisma.$transaction(async (tx) => {
+      if (existing) {
+        const updated = await tx.lifestyleProfile.update({
+          where: { id: existing.id },
+          data: dbData,
+        })
 
-      await prisma.auditLog.create({
-        data: {
-          userId: session.user.id,
-          action: "UPDATE_LIFESTYLE",
-          entityType: "LifestyleProfile",
-          entityId: profileId,
-          details: { assessedAt: data.assessedAt },
-        },
-      })
-    } else {
-      const created = await prisma.lifestyleProfile.create({
-        data: {
-          memberId,
-          assessedAt: data.assessedAt,
-          ...dbData,
-        },
-      })
-      profileId = created.id
+        await tx.auditLog.create({
+          data: {
+            userId: session.user.id,
+            action: "UPDATE_LIFESTYLE",
+            entityType: "LifestyleProfile",
+            entityId: updated.id,
+            details: { assessedAt: data.assessedAt },
+          },
+        })
 
-      await prisma.auditLog.create({
-        data: {
-          userId: session.user.id,
-          action: "CREATE_LIFESTYLE",
-          entityType: "LifestyleProfile",
-          entityId: profileId,
-          details: { assessedAt: data.assessedAt },
-        },
-      })
-    }
+        return updated.id
+      } else {
+        const created = await tx.lifestyleProfile.create({
+          data: {
+            memberId,
+            assessedAt: data.assessedAt,
+            ...dbData,
+          },
+        })
+
+        await tx.auditLog.create({
+          data: {
+            userId: session.user.id,
+            action: "CREATE_LIFESTYLE",
+            entityType: "LifestyleProfile",
+            entityId: created.id,
+            details: { assessedAt: data.assessedAt },
+          },
+        })
+
+        return created.id
+      }
+    })
 
     revalidatePath(`/members/${memberId}`)
     return { success: true, id: profileId }
@@ -447,8 +450,6 @@ export async function saveMenstrualHistory(
       select: { id: true },
     })
 
-    let menstrualId: string
-
     const dbData = {
       assessorId: session.user.id,
       lastCycleDate: data.lastCycleDate ?? null,
@@ -461,42 +462,46 @@ export async function saveMenstrualHistory(
       notes: data.notes ?? null,
     }
 
-    if (existing) {
-      const updated = await prisma.menstrualHistory.update({
-        where: { id: existing.id },
-        data: dbData,
-      })
-      menstrualId = updated.id
+    const menstrualId = await prisma.$transaction(async (tx) => {
+      if (existing) {
+        const updated = await tx.menstrualHistory.update({
+          where: { id: existing.id },
+          data: dbData,
+        })
 
-      await prisma.auditLog.create({
-        data: {
-          userId: session.user.id,
-          action: "UPDATE_MENSTRUAL",
-          entityType: "MenstrualHistory",
-          entityId: menstrualId,
-          details: { assessedAt: data.assessedAt },
-        },
-      })
-    } else {
-      const created = await prisma.menstrualHistory.create({
-        data: {
-          memberId,
-          assessedAt: data.assessedAt,
-          ...dbData,
-        },
-      })
-      menstrualId = created.id
+        await tx.auditLog.create({
+          data: {
+            userId: session.user.id,
+            action: "UPDATE_MENSTRUAL",
+            entityType: "MenstrualHistory",
+            entityId: updated.id,
+            details: { assessedAt: data.assessedAt },
+          },
+        })
 
-      await prisma.auditLog.create({
-        data: {
-          userId: session.user.id,
-          action: "CREATE_MENSTRUAL",
-          entityType: "MenstrualHistory",
-          entityId: menstrualId,
-          details: { assessedAt: data.assessedAt },
-        },
-      })
-    }
+        return updated.id
+      } else {
+        const created = await tx.menstrualHistory.create({
+          data: {
+            memberId,
+            assessedAt: data.assessedAt,
+            ...dbData,
+          },
+        })
+
+        await tx.auditLog.create({
+          data: {
+            userId: session.user.id,
+            action: "CREATE_MENUAL",
+            entityType: "MenstrualHistory",
+            entityId: created.id,
+            details: { assessedAt: data.assessedAt },
+          },
+        })
+
+        return created.id
+      }
+    })
 
     revalidatePath(`/members/${memberId}`)
     return { success: true, id: menstrualId }

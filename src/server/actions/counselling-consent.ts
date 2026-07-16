@@ -151,10 +151,6 @@ export async function saveCounsellingNote(
     return handlePrismaError(err)
   }
 }
-
-/**
- * Saves a Consent record. Performs an upsert as a member has only a single consent profile.
- */
 export async function saveConsent(
   memberId: string,
   values: ConsentFormValues
@@ -176,7 +172,7 @@ export async function saveConsent(
       emergencyMobile: data.emergencyMobile,
       relationship: data.relationship,
       consentDate: data.consentDate,
-      digitalSignature: "ACCEPTED_BY_MEMBER",
+      digitalSignature: data.digitalSignature || "ACCEPTED_BY_MEMBER",
     }
 
     const existing = await prisma.consent.findUnique({
@@ -184,43 +180,47 @@ export async function saveConsent(
       select: { id: true },
     })
 
-    let consentId: string
+    const consentId = await prisma.$transaction(async (tx) => {
+      let cId: string
 
-    if (existing) {
-      const updated = await prisma.consent.update({
-        where: { id: existing.id },
-        data: dbData,
-      })
-      consentId = updated.id
+      if (existing) {
+        const updated = await tx.consent.update({
+          where: { id: existing.id },
+          data: dbData,
+        })
+        cId = updated.id
 
-      await prisma.auditLog.create({
-        data: {
-          userId: session.user.id,
-          action: "UPDATE_CONSENT",
-          entityType: "Consent",
-          entityId: consentId,
-          details: { consentDate: data.consentDate },
-        },
-      })
-    } else {
-      const created = await prisma.consent.create({
-        data: {
-          memberId,
-          ...dbData,
-        },
-      })
-      consentId = created.id
+        await tx.auditLog.create({
+          data: {
+            userId: session.user.id,
+            action: "UPDATE_CONSENT",
+            entityType: "Consent",
+            entityId: cId,
+            details: { consentDate: data.consentDate },
+          },
+        })
+      } else {
+        const created = await tx.consent.create({
+          data: {
+            memberId,
+            ...dbData,
+          },
+        })
+        cId = created.id
 
-      await prisma.auditLog.create({
-        data: {
-          userId: session.user.id,
-          action: "CREATE_CONSENT",
-          entityType: "Consent",
-          entityId: consentId,
-          details: { consentDate: data.consentDate },
-        },
-      })
-    }
+        await tx.auditLog.create({
+          data: {
+            userId: session.user.id,
+            action: "CREATE_CONSENT",
+            entityType: "Consent",
+            entityId: cId,
+            details: { consentDate: data.consentDate },
+          },
+        })
+      }
+
+      return cId
+    })
 
     revalidatePath(`/members/${memberId}`)
     return { success: true, id: consentId }

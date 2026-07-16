@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation"
 
 import { auth } from "@/lib/auth"
 import { getMemberById, getStaffOptions } from "@/server/queries/members"
+import { getActivePackages } from "@/server/queries/package"
 import { MemberForm } from "@/components/member/member-form"
 import type { MemberFormValues } from "@/lib/validations/member"
 
@@ -20,9 +21,10 @@ export default async function EditMemberPage({ params }: PageProps) {
     redirect(`/members/${memberId}`)
   }
 
-  const [member, { counsellors, trainers }] = await Promise.all([
+  const [member, { counsellors, trainers }, packages] = await Promise.all([
     getMemberById(memberId),
     getStaffOptions(),
+    getActivePackages(),
   ])
 
   if (!member || member.status === "ARCHIVED") notFound()
@@ -46,6 +48,7 @@ export default async function EditMemberPage({ params }: PageProps) {
     fitnessGoals: member.fitnessGoals.map((g) => g.goal) as MemberFormValues["fitnessGoals"],
     counsellorId: member.counsellorId ?? "",
     trainerId: member.trainerId ?? "",
+    packageId: member.packageId ?? "",
   }
 
   return (
@@ -62,6 +65,7 @@ export default async function EditMemberPage({ params }: PageProps) {
         defaultValues={defaultValues}
         counsellors={counsellors}
         trainers={trainers}
+        packages={packages}
         showCounsellorField={role === "ADMIN"}
       />
     </div>

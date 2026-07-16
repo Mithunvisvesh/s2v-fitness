@@ -88,7 +88,6 @@ export async function getMembers(
     pageCount: Math.max(1, Math.ceil(total / pageSize)),
   }
 }
-
 export async function getMemberById(id: string) {
   return prisma.member.findUnique({
     where: { id },
@@ -96,13 +95,27 @@ export async function getMemberById(id: string) {
       counsellor: { select: { id: true, name: true, email: true } },
       trainer: { select: { id: true, name: true, email: true } },
       fitnessGoals: true,
+      packageRelation: true,
+      renewals: {
+        include: {
+          renewedByUser: {
+            select: { name: true },
+          },
+        },
+        orderBy: {
+          renewedAt: "desc",
+        },
+      },
     },
   })
 }
 
 export async function getStaffOptions() {
   const staff = await prisma.user.findMany({
-    where: { role: { in: ["COUNSELLOR", "TRAINER"] } },
+    where: {
+      role: { in: ["COUNSELLOR", "TRAINER"] },
+      isActive: true,
+    },
     select: { id: true, name: true, role: true },
     orderBy: { name: "asc" },
   })

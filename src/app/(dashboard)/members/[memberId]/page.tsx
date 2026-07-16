@@ -4,6 +4,7 @@ import { notFound } from "next/navigation"
 import { auth } from "@/lib/auth"
 import { getMemberById } from "@/server/queries/members"
 import { getMemberMeasurements } from "@/server/queries/measurements"
+import { getActivePackages } from "@/server/queries/package"
 import { ScreeningTab } from "@/components/member/screening/screening-tab"
 import {
   getLatestPARQ,
@@ -29,14 +30,16 @@ import { DocumentsTab } from "@/components/member/documents-tab"
 import { getMemberReportData } from "@/server/queries/reports"
 import { ReportDownloadButton } from "@/components/member/report-download-button"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { ProfileHeader } from "@/components/member/profile-header"
 import { MemberStatusBadge } from "@/components/member/status-badge"
 import { MeasurementsTab } from "@/components/measurements/measurements-tab"
+import { RenewalDialog } from "@/components/member/renewal-dialog"
 import { formatDate } from "@/lib/utils"
 import { PACKAGE_OPTIONS, MARITAL_STATUS_OPTIONS, GENDER_OPTIONS } from "@/lib/constants"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 interface PageProps {
   params: Promise<{ memberId: string }>
@@ -89,6 +92,7 @@ export default async function MemberProfilePage({ params, searchParams }: PagePr
     trainers,
     documents,
     reportData,
+    packages,
   ] = await Promise.all([
     getMemberMeasurements(memberId),
     getLatestPARQ(memberId),
@@ -102,13 +106,14 @@ export default async function MemberProfilePage({ params, searchParams }: PagePr
     getTrainers(),
     getMemberDocuments(memberId),
     getMemberReportData(memberId),
+    getActivePackages(),
   ])
 
   const genderLabel = GENDER_OPTIONS.find((g) => g.value === member.gender)?.label ?? member.gender
   const maritalLabel = member.maritalStatus
     ? (MARITAL_STATUS_OPTIONS.find((m) => m.value === member.maritalStatus)?.label ?? member.maritalStatus)
     : null
-  const packageLabel = PACKAGE_OPTIONS.find((p) => p.value === member.package)?.label ?? member.package
+  const packageLabel = member.packageRelation?.name || (PACKAGE_OPTIONS.find((p) => p.value === member.package)?.label ?? member.package)
 
   return (
     <div className="flex flex-col gap-6 p-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -165,9 +170,23 @@ export default async function MemberProfilePage({ params, searchParams }: PagePr
         </TabsContent>
 
         {/* ── 2. Membership ───────────────────────────────────────────── */}
-        <TabsContent value="membership" className="mt-4">
+        <TabsContent value="membership" className="mt-4 flex flex-col gap-6">
           <Card>
-            <CardHeader><CardTitle>Membership details</CardTitle></CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0">
+              <CardTitle>Membership details</CardTitle>
+              {canEdit && (
+                <RenewalDialog
+                  memberId={memberId}
+                  currentEndDate={member.endDate}
+                  packages={packages.map(p => ({
+                    id: p.id,
+                    name: p.name,
+                    durationMonths: p.durationMonths,
+                    price: p.price ? Number(p.price) : null,
+                  }))}
+                />
+              )}
+            </CardHeader>
             <CardContent>
               <dl className="space-y-3">
                 <InfoRow label="Package" value={packageLabel} />
@@ -191,6 +210,48 @@ export default async function MemberProfilePage({ params, searchParams }: PagePr
                   </div>
                 </InfoRow>
               </dl>
+            </CardContent>
+          </Card>
+
+          {/* Renewal History Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Membership Renewal History</CardTitle>
+              <CardDescription>History of all renewals processed for this member.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Package</TableHead>
+                      <TableHead>Previous End Date</TableHead>
+                      <TableHead>New End Date</TableHead>
+                      <TableHead>Processed By</TableHead>
+                      <TableHead>Processed At</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {(!member.renewals || member.renewals.length === 0) ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                          No renewal history found.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      member.renewals.map((r) => (
+                        <TableRow key={r.id}>
+                          <TableCell className="font-medium">{r.packageAtRenewal}</TableCell>
+                          <TableCell>{formatDate(r.previousEndDate)}</TableCell>
+                          <TableCell>{formatDate(r.newEndDate)}</TableCell>
+                          <TableCell>{r.renewedByUser?.name || "System"}</TableCell>
+                          <TableCell>{new Date(r.renewedAt).toLocaleString("en-IN")}</TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

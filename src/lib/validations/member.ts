@@ -24,6 +24,7 @@ export const memberSchema = z
       .min(1, "Select at least one fitness goal"),
     counsellorId: z.string().optional(),
     trainerId: z.string().optional(),
+    packageId: z.string().optional().or(z.literal("")),
   })
   .refine((data) => data.endDate > data.startDate, {
     message: "End date must be after the start date",

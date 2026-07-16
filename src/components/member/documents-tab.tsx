@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { uploadDocument, deleteDocument } from "@/server/actions/documents"
+import { uploadDocument, deleteDocument, getSignedDocumentUrl } from "@/server/actions/documents"
 import { formatDate } from "@/lib/utils"
 
 interface DocumentItem {
@@ -59,8 +59,20 @@ export function DocumentsTab({ memberId, documents, role }: DocumentsTabProps) {
 
   const canManage = role === "ADMIN" || role === "COUNSELLOR"
 
+  async function handleDownload(docId: string) {
+    try {
+      const result = await getSignedDocumentUrl(docId, memberId)
+      if (result.success && result.url) {
+        window.open(result.url, "_blank")
+      } else {
+        toast.error(!result.success ? result.message : "Failed to generate download link.")
+      }
+    } catch {
+      toast.error("An error occurred while preparing download.")
+    }
+  }
+
   async function handleUpload(e: React.FormEvent) {
-    e.preventDefault()
     if (!file) {
       toast.error("Please select a file to upload.")
       return
@@ -199,11 +211,14 @@ export function DocumentsTab({ memberId, documents, role }: DocumentsTabProps) {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer">
-                        <Button variant="outline" size="icon" className="h-8 w-8">
-                          <Download className="h-4 w-4 text-muted-foreground" />
-                        </Button>
-                      </a>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => handleDownload(doc.id)}
+                      >
+                        <Download className="h-4 w-4 text-muted-foreground" />
+                      </Button>
                       {canManage && (
                         <Button
                           variant="ghost"

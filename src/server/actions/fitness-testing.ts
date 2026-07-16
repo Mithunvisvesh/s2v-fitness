@@ -155,7 +155,6 @@ export async function savePosturalAnalysis(
   if (!parsed.success) {
     return { success: false, error: parsed.error.flatten() }
   }
-
   const data = parsed.data
 
   try {
@@ -166,8 +165,6 @@ export async function savePosturalAnalysis(
       },
       select: { id: true },
     })
-
-    let posturalId: string
 
     const dbData = {
       assessorId: session.user.id,
@@ -190,42 +187,46 @@ export async function savePosturalAnalysis(
       trainerNotes: data.trainerNotes ?? null,
     }
 
-    if (existing) {
-      const updated = await prisma.posturalAnalysis.update({
-        where: { id: existing.id },
-        data: dbData,
-      })
-      posturalId = updated.id
+    const posturalId = await prisma.$transaction(async (tx) => {
+      if (existing) {
+        const updated = await tx.posturalAnalysis.update({
+          where: { id: existing.id },
+          data: dbData,
+        })
 
-      await prisma.auditLog.create({
-        data: {
-          userId: session.user.id,
-          action: "UPDATE_POSTURAL",
-          entityType: "PosturalAnalysis",
-          entityId: posturalId,
-          details: { assessedAt: data.assessedAt },
-        },
-      })
-    } else {
-      const created = await prisma.posturalAnalysis.create({
-        data: {
-          memberId,
-          assessedAt: data.assessedAt,
-          ...dbData,
-        },
-      })
-      posturalId = created.id
+        await tx.auditLog.create({
+          data: {
+            userId: session.user.id,
+            action: "UPDATE_POSTURAL",
+            entityType: "PosturalAnalysis",
+            entityId: updated.id,
+            details: { assessedAt: data.assessedAt },
+          },
+        })
 
-      await prisma.auditLog.create({
-        data: {
-          userId: session.user.id,
-          action: "CREATE_POSTURAL",
-          entityType: "PosturalAnalysis",
-          entityId: posturalId,
-          details: { assessedAt: data.assessedAt },
-        },
-      })
-    }
+        return updated.id
+      } else {
+        const created = await tx.posturalAnalysis.create({
+          data: {
+            memberId,
+            assessedAt: data.assessedAt,
+            ...dbData,
+          },
+        })
+
+        await tx.auditLog.create({
+          data: {
+            userId: session.user.id,
+            action: "CREATE_POSTURAL",
+            entityType: "PosturalAnalysis",
+            entityId: created.id,
+            details: { assessedAt: data.assessedAt },
+          },
+        })
+
+        return created.id
+      }
+    })
 
     revalidatePath(`/members/${memberId}`)
     return { success: true, id: posturalId }
@@ -261,8 +262,6 @@ export async function saveFitnessTest(
       select: { id: true },
     })
 
-    let testId: string
-
     const dbData = {
       assessorId: session.user.id,
       cardioMachine: data.cardioMachine ?? null,
@@ -286,42 +285,46 @@ export async function saveFitnessTest(
       lStandingBalance: data.lStandingBalance ?? null,
     }
 
-    if (existing) {
-      const updated = await prisma.fitnessTest.update({
-        where: { id: existing.id },
-        data: dbData,
-      })
-      testId = updated.id
+    const testId = await prisma.$transaction(async (tx) => {
+      if (existing) {
+        const updated = await tx.fitnessTest.update({
+          where: { id: existing.id },
+          data: dbData,
+        })
 
-      await prisma.auditLog.create({
-        data: {
-          userId: session.user.id,
-          action: "UPDATE_FITNESSTEST",
-          entityType: "FitnessTest",
-          entityId: testId,
-          details: { testDate: data.testDate },
-        },
-      })
-    } else {
-      const created = await prisma.fitnessTest.create({
-        data: {
-          memberId,
-          testDate: data.testDate,
-          ...dbData,
-        },
-      })
-      testId = created.id
+        await tx.auditLog.create({
+          data: {
+            userId: session.user.id,
+            action: "UPDATE_FITNESSTEST",
+            entityType: "FitnessTest",
+            entityId: updated.id,
+            details: { testDate: data.testDate },
+          },
+        })
 
-      await prisma.auditLog.create({
-        data: {
-          userId: session.user.id,
-          action: "CREATE_FITNESSTEST",
-          entityType: "FitnessTest",
-          entityId: testId,
-          details: { testDate: data.testDate },
-        },
-      })
-    }
+        return updated.id
+      } else {
+        const created = await tx.fitnessTest.create({
+          data: {
+            memberId,
+            testDate: data.testDate,
+            ...dbData,
+          },
+        })
+
+        await tx.auditLog.create({
+          data: {
+            userId: session.user.id,
+            action: "CREATE_FITNESSTEST",
+            entityType: "FitnessTest",
+            entityId: created.id,
+            details: { testDate: data.testDate },
+          },
+        })
+
+        return created.id
+      }
+    })
 
     revalidatePath(`/members/${memberId}`)
     return { success: true, id: testId }

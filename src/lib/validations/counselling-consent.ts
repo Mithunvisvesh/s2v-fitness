@@ -25,6 +25,7 @@ export const consentSchema = z.object({
   acknowledged: z.boolean().refine((val) => val === true, {
     message: "You must check the box to acknowledge and accept consent terms.",
   }),
+  digitalSignature: z.string().optional().or(z.literal("")),
 })
 
 export type ConsentFormValues = z.infer<typeof consentSchema>

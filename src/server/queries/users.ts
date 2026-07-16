@@ -14,6 +14,7 @@ export async function getTrainers() {
   return prisma.user.findMany({
     where: {
       role: "TRAINER",
+      isActive: true,
     },
     select: {
       id: true,
@@ -21,6 +22,19 @@ export async function getTrainers() {
     },
     orderBy: {
       name: "asc",
+    },
+  })
+}
+
+export async function getStaffList() {
+  const session = await auth()
+  if (!session || session.user.role !== "ADMIN") {
+    throw new Error("Unauthorised: Access denied.")
+  }
+
+  return prisma.user.findMany({
+    orderBy: {
+      createdAt: "desc",
     },
   })
 }

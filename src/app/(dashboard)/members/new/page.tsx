@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 
 import { auth } from "@/lib/auth"
 import { getStaffOptions, getSuggestedMembershipNo } from "@/server/queries/members"
+import { getActivePackages } from "@/server/queries/package"
 import { MemberForm } from "@/components/member/member-form"
 
 export const metadata = { title: "Register Member — S2V Fitness" }
@@ -14,9 +15,10 @@ export default async function NewMemberPage() {
     redirect("/members")
   }
 
-  const [{ counsellors, trainers }, suggestedNo] = await Promise.all([
+  const [{ counsellors, trainers }, suggestedNo, packages] = await Promise.all([
     getStaffOptions(),
     getSuggestedMembershipNo(),
+    getActivePackages(),
   ])
 
   return (
@@ -31,6 +33,7 @@ export default async function NewMemberPage() {
         mode="create"
         counsellors={counsellors}
         trainers={trainers}
+        packages={packages}
         showCounsellorField={role === "ADMIN"}
         defaultValues={{ membershipNo: suggestedNo }}
       />

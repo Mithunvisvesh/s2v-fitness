@@ -10,7 +10,7 @@ import {
 } from "@/lib/validations/counselling-consent"
 import { saveConsent } from "@/server/actions/counselling-consent"
 import { toDateInputValue, formatDate } from "@/lib/utils"
-
+import { SignaturePad } from "@/components/member/signature-pad"
 import {
   Form,
   FormField,
@@ -40,9 +40,6 @@ interface ConsentTabProps {
 }
 
 export function ConsentTab({ memberId, role, consent, onSuccess }: ConsentTabProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const isTrainer = role === "TRAINER"
-
   const form = useForm<ConsentFormValues>({
     resolver: zodResolver(consentSchema),
     defaultValues: {
@@ -51,8 +48,14 @@ export function ConsentTab({ memberId, role, consent, onSuccess }: ConsentTabPro
       relationship: consent?.relationship ?? "",
       consentDate: consent?.consentDate ? new Date(consent.consentDate) : new Date(),
       acknowledged: !!consent,
+      digitalSignature: consent?.digitalSignature ?? "",
     },
   })
+
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const isTrainer = role === "TRAINER"
+
+
 
   async function onSubmit(values: ConsentFormValues) {
     setIsSubmitting(true)
@@ -112,6 +115,18 @@ export function ConsentTab({ memberId, role, consent, onSuccess }: ConsentTabPro
             <p><strong>Mobile:</strong> {consent.emergencyMobile}</p>
             <p><strong>Relationship:</strong> {consent.relationship}</p>
             <p><strong>Acknowledgement:</strong> Accepted via electronic checkbox signature.</p>
+            {consent.digitalSignature && consent.digitalSignature.startsWith("data:image/") && (
+              <div className="mt-4 pt-4 border-t">
+                <p className="font-semibold text-xs text-muted-foreground mb-2">Member Digital Signature</p>
+                <div className="border rounded bg-white p-2 w-fit">
+                  <img
+                    src={consent.digitalSignature}
+                    alt="Member Digital Signature"
+                    className="max-h-20 max-w-[200px] object-contain"
+                  />
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       ) : (
@@ -202,6 +217,23 @@ export function ConsentTab({ memberId, role, consent, onSuccess }: ConsentTabPro
                   )}
                 />
               </div>
+              <FormField
+                control={form.control}
+                name="digitalSignature"
+                render={({ field }) => (
+                  <FormItem className="space-y-2">
+                    <FormLabel>Member Signature (Draw below)</FormLabel>
+                    <FormControl>
+                      <SignaturePad
+                        value={field.value}
+                        onChange={field.onChange}
+                        disabled={isSubmitting}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               {/* Acknowledgement Checkbox */}
               <FormField

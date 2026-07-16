@@ -90,6 +90,7 @@ model User {
   email         String   @unique
   password      String
   role          Role     @default(TRAINER)
+  isActive      Boolean  @default(true)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -97,6 +98,7 @@ model User {
   trainerMembers    Member[]  @relation("TrainerMembers")
   counsellingNotes  CounsellingNote[]
   auditLogs         AuditLog[]
+  renewals          MembershipRenewal[]
 
   parQAssessments      PARQ[]             @relation("AssessorPARQ")
   lifestyleProfiles    LifestyleProfile[] @relation("AssessorLifestyle")
@@ -123,10 +125,13 @@ model Member {
   status          MemberStatus @default(ACTIVE)
 
   // Membership
+  // @deprecated Use packageId/packageRelation instead
   package         PackageType
   durationMonths  Int
   startDate       DateTime
   endDate         DateTime
+  packageId       String?
+  packageRelation Package?     @relation(fields: [packageId], references: [id])
   counsellorId    String?
   counsellor      User?         @relation("CounsellorMembers", fields: [counsellorId], references: [id])
   trainerId       String?
@@ -146,6 +151,7 @@ model Member {
   counsellingNotes CounsellingNote[]
   documents        Document[]
   consent          Consent?
+  renewals         MembershipRenewal[]
 
   archivedAt      DateTime?
   createdAt       DateTime     @default(now())
@@ -441,4 +447,30 @@ model AuditLog {
   entityId    String
   details     Json?
   createdAt   DateTime @default(now())
+}
+
+model Package {
+  id             String   @id @default(cuid())
+  name           String
+  durationMonths Int
+  price          Decimal?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  members        Member[]
+}
+
+model MembershipRenewal {
+  id               String   @id @default(cuid())
+  memberId         String
+  member           Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  previousEndDate  DateTime
+  newEndDate       DateTime
+  packageAtRenewal String
+  renewedAt        DateTime @default(now())
+  renewedBy        String
+  renewedByUser    User     @relation(fields: [renewedBy], references: [id])
+
+  @@index([memberId])
 }

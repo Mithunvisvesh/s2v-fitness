@@ -116,7 +116,6 @@ async function checkUniqueness(
 
   return null
 }
-
 export async function createMember(values: MemberFormValues): Promise<ActionResult> {
   const session = await requireStaffSession()
 
@@ -125,7 +124,7 @@ export async function createMember(values: MemberFormValues): Promise<ActionResu
     return { success: false, error: parsed.error.flatten() }
   }
 
-  const { fitnessGoals, registrationDate, counsellorId, trainerId, ...rest } = parsed.data
+  const { fitnessGoals, registrationDate, counsellorId, trainerId, packageId, ...rest } = parsed.data
 
   // Pre-flight check (fast, avoids a write round-trip for the common case)
   const preflight = await checkUniqueness({
@@ -136,40 +135,43 @@ export async function createMember(values: MemberFormValues): Promise<ActionResu
   if (preflight) return preflight
 
   try {
-    const member = await prisma.member.create({
-      data: {
-        ...rest,
-        email: rest.email || null,
-        date: registrationDate ?? new Date(),
-        age: calculateAge(rest.dateOfBirth),
-        fitnessGoals: { create: fitnessGoals.map((goal) => ({ goal })) },
-        counsellorId:
-          session.user.role === "COUNSELLOR"
-            ? session.user.id
-            : counsellorId || null,
-        trainerId: trainerId || null,
-      },
-    })
+    const member = await prisma.$transaction(async (tx) => {
+      const m = await tx.member.create({
+        data: {
+          ...rest,
+          email: rest.email || null,
+          date: registrationDate ?? new Date(),
+          age: calculateAge(rest.dateOfBirth),
+          fitnessGoals: { create: fitnessGoals.map((goal) => ({ goal })) },
+          counsellorId:
+            session.user.role === "COUNSELLOR"
+              ? session.user.id
+              : counsellorId || null,
+          trainerId: trainerId || null,
+          packageId: packageId || null,
+        },
+      })
 
-    await prisma.auditLog.create({
-      data: {
-        userId: session.user.id,
-        action: "CREATE_MEMBER",
-        entityType: "Member",
-        entityId: member.id,
-      },
+      await tx.auditLog.create({
+        data: {
+          userId: session.user.id,
+          action: "CREATE_MEMBER",
+          entityType: "Member",
+          entityId: m.id,
+        },
+      })
+
+      return m
     })
 
     revalidatePath("/members")
     return { success: true, memberId: member.id }
   } catch (err) {
-    // Safety net: another request may have inserted between pre-flight and write
     const constraintError = handleP2002(err)
     if (constraintError) return constraintError
     throw err // re-throw unexpected errors so Next.js error boundaries catch them
   }
 }
-
 export async function updateMember(
   memberId: string,
   values: MemberFormValues
@@ -181,7 +183,7 @@ export async function updateMember(
     return { success: false, error: parsed.error.flatten() }
   }
 
-  const { fitnessGoals, registrationDate, counsellorId, trainerId, ...rest } = parsed.data
+  const { fitnessGoals, registrationDate, counsellorId, trainerId, packageId, ...rest } = parsed.data
 
   // Pre-flight check — exclude the member being edited
   const preflight = await checkUniqueness(
@@ -195,29 +197,32 @@ export async function updateMember(
   if (preflight) return preflight
 
   try {
-    await prisma.member.update({
-      where: { id: memberId },
-      data: {
-        ...rest,
-        email: rest.email || null,
-        ...(registrationDate ? { date: registrationDate } : {}),
-        age: calculateAge(rest.dateOfBirth),
-        counsellorId: counsellorId || null,
-        trainerId: trainerId || null,
-        fitnessGoals: {
-          deleteMany: {},
-          create: fitnessGoals.map((goal) => ({ goal })),
+    await prisma.$transaction(async (tx) => {
+      await tx.member.update({
+        where: { id: memberId },
+        data: {
+          ...rest,
+          email: rest.email || null,
+          ...(registrationDate ? { date: registrationDate } : {}),
+          age: calculateAge(rest.dateOfBirth),
+          counsellorId: counsellorId || null,
+          trainerId: trainerId || null,
+          packageId: packageId || null,
+          fitnessGoals: {
+            deleteMany: {},
+            create: fitnessGoals.map((goal) => ({ goal })),
+          },
         },
-      },
-    })
+      })
 
-    await prisma.auditLog.create({
-      data: {
-        userId: session.user.id,
-        action: "UPDATE_MEMBER",
-        entityType: "Member",
-        entityId: memberId,
-      },
+      await tx.auditLog.create({
+        data: {
+          userId: session.user.id,
+          action: "UPDATE_MEMBER",
+          entityType: "Member",
+          entityId: memberId,
+        },
+      })
     })
 
     revalidatePath("/members")
@@ -229,22 +234,23 @@ export async function updateMember(
     throw err
   }
 }
-
 export async function archiveMember(memberId: string) {
   const session = await requireStaffSession()
 
-  await prisma.member.update({
-    where: { id: memberId },
-    data: { status: "ARCHIVED", archivedAt: new Date() },
-  })
+  await prisma.$transaction(async (tx) => {
+    await tx.member.update({
+      where: { id: memberId },
+      data: { status: "ARCHIVED", archivedAt: new Date() },
+    })
 
-  await prisma.auditLog.create({
-    data: {
-      userId: session.user.id,
-      action: "ARCHIVE_MEMBER",
-      entityType: "Member",
-      entityId: memberId,
-    },
+    await tx.auditLog.create({
+      data: {
+        userId: session.user.id,
+        action: "ARCHIVE_MEMBER",
+        entityType: "Member",
+        entityId: memberId,
+      },
+    })
   })
 
   revalidatePath("/members")
@@ -263,18 +269,20 @@ export async function restoreMember(memberId: string): Promise<ActionResult> {
     const restoredStatus =
       member && member.endDate < new Date() ? "EXPIRED" : "ACTIVE"
 
-    await prisma.member.update({
-      where: { id: memberId },
-      data: { status: restoredStatus, archivedAt: null },
-    })
+    await prisma.$transaction(async (tx) => {
+      await tx.member.update({
+        where: { id: memberId },
+        data: { status: restoredStatus, archivedAt: null },
+      })
 
-    await prisma.auditLog.create({
-      data: {
-        userId: session.user.id,
-        action: "RESTORE_MEMBER",
-        entityType: "Member",
-        entityId: memberId,
-      },
+      await tx.auditLog.create({
+        data: {
+          userId: session.user.id,
+          action: "RESTORE_MEMBER",
+          entityType: "Member",
+          entityId: memberId,
+        },
+      })
     })
 
     revalidatePath("/members")
@@ -291,7 +299,6 @@ export async function restoreMember(memberId: string): Promise<ActionResult> {
     }
   }
 }
-
 export async function assignTrainer(
   memberId: string,
   trainerId: string | null
