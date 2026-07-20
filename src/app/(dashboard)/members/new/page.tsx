@@ -11,7 +11,7 @@ export default async function NewMemberPage() {
   const session = await auth()
   const role = session?.user?.role
 
-  if (!role || (role !== "ADMIN" && role !== "COUNSELLOR")) {
+  if (!role || (role !== "ADMIN" && role !== "COUNSELLOR" && role !== "OWNER")) {
     redirect("/members")
   }
 
@@ -33,8 +33,13 @@ export default async function NewMemberPage() {
         mode="create"
         counsellors={counsellors}
         trainers={trainers}
-        packages={packages}
-        showCounsellorField={role === "ADMIN"}
+        packages={packages.map((p) => ({
+          id: p.id,
+          name: p.name,
+          durationMonths: p.durationMonths,
+          price: p.price ? Number(p.price) : null,
+        }))}
+        showCounsellorField={role === "ADMIN" || role === "OWNER"}
         defaultValues={{ membershipNo: suggestedNo }}
       />
     </div>

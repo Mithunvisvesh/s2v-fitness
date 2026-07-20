@@ -5,7 +5,7 @@ import { auth } from "@/lib/auth"
 import { supabase } from "@/lib/supabase"
 import { revalidatePath } from "next/cache"
 
-const ALLOWED_ROLES = ["ADMIN", "COUNSELLOR"]
+const ALLOWED_ROLES = ["OWNER", "ADMIN", "COUNSELLOR"]
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024 // 10MB
 const ALLOWED_MIME_TYPES = ["application/pdf", "image/jpeg", "image/png", "image/webp"]
 
@@ -34,7 +34,7 @@ async function checkReadAccess(memberId: string) {
   }
 
   const { role, id: userId } = session.user
-  const ALL_STAFF_ROLES = ["ADMIN", "COUNSELLOR", "TRAINER"]
+  const ALL_STAFF_ROLES = ["OWNER", "ADMIN", "COUNSELLOR", "TRAINER"]
   if (!ALL_STAFF_ROLES.includes(role)) {
     throw new Error("You don't have permission to perform this action.")
   }

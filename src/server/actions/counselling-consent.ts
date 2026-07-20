@@ -90,7 +90,7 @@ async function checkAdminCounsellorAuth(): Promise<MutateAuthResult> {
 
   const { role } = session.user
 
-  const ALLOWED_ROLES = ["ADMIN", "COUNSELLOR"]
+  const ALLOWED_ROLES = ["OWNER", "ADMIN", "COUNSELLOR"]
   if (!ALLOWED_ROLES.includes(role)) {
     return {
       success: false,

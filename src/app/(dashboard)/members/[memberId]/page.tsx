@@ -69,12 +69,12 @@ export default async function MemberProfilePage({ params, searchParams }: PagePr
 
   const role = session?.user?.role ?? "TRAINER"
   const userId = session?.user?.id ?? ""
-  const canManage = role === "ADMIN" || role === "COUNSELLOR" || role === "TRAINER"
+  const canManage = role === "ADMIN" || role === "COUNSELLOR" || role === "TRAINER" || role === "OWNER"
 
   // Trainers can only view their assigned members
   if (role === "TRAINER" && member.trainerId !== userId) notFound()
 
-  const canEdit = role === "ADMIN" || role === "COUNSELLOR"
+  const canEdit = role === "ADMIN" || role === "COUNSELLOR" || role === "OWNER"
 
   const showMenstrual = member.gender === "FEMALE" && role !== "TRAINER"
   const showConsent = role !== "TRAINER"

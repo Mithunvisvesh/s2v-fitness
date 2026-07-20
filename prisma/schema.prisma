@@ -8,7 +8,9 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+
 enum Role {
+  OWNER
   ADMIN
   COUNSELLOR
   TRAINER

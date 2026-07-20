@@ -25,7 +25,7 @@ export const metadata = { title: "System Audit Logs — S2V Fitness" }
 
 export default async function AuditLogPage({ searchParams }: PageProps) {
   const session = await auth()
-  if (!session || session.user.role !== "ADMIN") {
+  if (!session || (session.user.role !== "ADMIN" && session.user.role !== "OWNER")) {
     notFound()
   }
 

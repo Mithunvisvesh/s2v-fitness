@@ -5,8 +5,7 @@ import { auth } from "@/lib/auth"
 import { measurementSchema, type MeasurementFormValues } from "@/lib/validations/measurement"
 import { calcBMI, calcWHR, getWHRStatus } from "@/lib/constants"
 import { revalidatePath } from "next/cache"
-
-const ALLOWED_ROLES = ["ADMIN", "COUNSELLOR", "TRAINER"]
+const ALLOWED_ROLES = ["OWNER", "ADMIN", "COUNSELLOR", "TRAINER"]
 
 type ActionResult =
   | { success: true; measurementId: string }

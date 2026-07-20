@@ -29,8 +29,7 @@ export function Sidebar({ role }: { role?: string }) {
     { href: "/reports", label: "Reports", icon: BarChart3 },
     { href: "/archive", label: "Archive", icon: Archive },
   ]
-
-  if (role === "ADMIN") {
+  if (role === "ADMIN" || role === "OWNER") {
     items.push({ href: "/staff", label: "Staff", icon: UserCheck })
     items.push({ href: "/packages", label: "Packages", icon: Tag })
     items.push({ href: "/audit-log", label: "Audit Log", icon: Activity })

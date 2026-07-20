@@ -33,10 +33,8 @@ export function TrainerAssignmentCard({
 }: TrainerAssignmentCardProps) {
   const [selectedTrainerId, setSelectedTrainerId] = useState<string>(currentTrainerId || "unassigned")
   const [isSubmitting, setIsSubmitting] = useState(false)
-
-  const canAssign = role === "ADMIN" || role === "COUNSELLOR"
+  const canAssign = role === "ADMIN" || role === "COUNSELLOR" || role === "OWNER"
   const currentTrainer = trainers.find((t) => t.id === currentTrainerId)
-
   async function handleAssign() {
     setIsSubmitting(true)
     try {

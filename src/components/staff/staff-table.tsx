@@ -22,12 +22,11 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { getInitials } from "@/lib/utils"
-
 interface UserRow {
   id: string
   name: string
   email: string
-  role: "ADMIN" | "COUNSELLOR" | "TRAINER"
+  role: "OWNER" | "ADMIN" | "COUNSELLOR" | "TRAINER"
   isActive: boolean
 }
 
@@ -59,9 +58,10 @@ export function StaffTable({ users, onEdit, currentUserId }: StaffTableProps) {
       }
     })
   }
-
   function roleBadgeVariant(role: string) {
     switch (role) {
+      case "OWNER":
+        return "default"
       case "ADMIN":
         return "destructive"
       case "COUNSELLOR":

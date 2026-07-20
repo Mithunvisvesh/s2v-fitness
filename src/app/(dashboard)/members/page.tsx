@@ -49,7 +49,7 @@ async function MemberListContent({
     { id: userId, role }
   )
 
-  const canManage = role === "ADMIN" || role === "COUNSELLOR"
+  const canManage = role === "ADMIN" || role === "COUNSELLOR" || role === "OWNER"
   const hasFilters = !!(search || status || pkg)
 
   return (
@@ -75,7 +75,7 @@ export default async function MembersPage({ searchParams }: PageProps) {
   const session = await auth()
   const role = session?.user?.role ?? "TRAINER"
   const userId = session?.user?.id ?? ""
-  const canManage = role === "ADMIN" || role === "COUNSELLOR"
+  const canManage = role === "ADMIN" || role === "COUNSELLOR" || role === "OWNER"
 
   const params = await searchParams
   const search = params.q ?? ""

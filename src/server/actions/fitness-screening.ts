@@ -153,7 +153,7 @@ export async function savePARQ(
   memberId: string,
   values: ParqFormValues
 ): Promise<ActionResult> {
-  const authCheck = await checkMutateAuth(memberId, ["ADMIN", "COUNSELLOR", "TRAINER"])
+  const authCheck = await checkMutateAuth(memberId, ["OWNER", "ADMIN", "COUNSELLOR", "TRAINER"])
   if (!authCheck.success) return authCheck.actionResult
   const { session } = authCheck
 
@@ -241,7 +241,7 @@ export async function saveLifestyleProfile(
   memberId: string,
   values: LifestyleProfileFormValues
 ): Promise<ActionResult> {
-  const authCheck = await checkMutateAuth(memberId, ["ADMIN", "COUNSELLOR", "TRAINER"])
+  const authCheck = await checkMutateAuth(memberId, ["OWNER", "ADMIN", "COUNSELLOR", "TRAINER"])
   if (!authCheck.success) return authCheck.actionResult
   const { session } = authCheck
 
@@ -335,7 +335,7 @@ export async function saveMedicalConditions(
   memberId: string,
   values: MedicalConditionsFormValues
 ): Promise<ActionResult> {
-  const authCheck = await checkMutateAuth(memberId, ["ADMIN", "COUNSELLOR"])
+  const authCheck = await checkMutateAuth(memberId, ["OWNER", "ADMIN", "COUNSELLOR"])
   if (!authCheck.success) return authCheck.actionResult
   const { session } = authCheck
 
@@ -404,7 +404,7 @@ export async function saveMenstrualHistory(
   memberId: string,
   values: MenstrualHistoryFormValues
 ): Promise<ActionResult> {
-  const authCheck = await checkMutateAuth(memberId, ["ADMIN", "COUNSELLOR"])
+  const authCheck = await checkMutateAuth(memberId, ["OWNER", "ADMIN", "COUNSELLOR"])
   if (!authCheck.success) return authCheck.actionResult
   const { session } = authCheck
 

@@ -6,8 +6,7 @@ import { memberSchema, type MemberFormValues } from "@/lib/validations/member"
 import { revalidatePath } from "next/cache"
 import { calculateAge } from "@/lib/utils"
 import { Prisma } from "@prisma/client"
-
-const STAFF_ROLES = ["ADMIN", "COUNSELLOR"]
+const STAFF_ROLES = ["OWNER", "ADMIN", "COUNSELLOR"]
 
 type ActionResult =
   | { success: true; memberId: string }

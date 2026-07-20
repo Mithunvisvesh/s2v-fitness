@@ -52,8 +52,7 @@ interface CounsellingTabProps {
 
 export function CounsellingTab({ memberId, role, notes, onSuccess }: CounsellingTabProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const canWrite = role === "ADMIN" || role === "COUNSELLOR"
-
+  const canWrite = role === "ADMIN" || role === "COUNSELLOR" || role === "OWNER"
   const form = useForm<CounsellingNoteFormValues>({
     resolver: zodResolver(counsellingNoteSchema),
     defaultValues: {

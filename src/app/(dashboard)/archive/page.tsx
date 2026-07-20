@@ -62,8 +62,7 @@ async function ArchiveListContent({
 export default async function ArchivePage({ searchParams }: PageProps) {
   const session = await auth()
   const role = session?.user?.role ?? "TRAINER"
-  const canManage = role === "ADMIN" || role === "COUNSELLOR"
-
+  const canManage = role === "ADMIN" || role === "COUNSELLOR" || role === "OWNER"
   const params = await searchParams
   const search = params.q ?? ""
   const pkg = params.package ?? ""

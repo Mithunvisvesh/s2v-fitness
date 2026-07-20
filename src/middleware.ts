@@ -14,12 +14,12 @@ export default auth((req) => {
 
   // Admin-only routes
   const role = session.user?.role
-
   if (
     (pathname.startsWith("/staff") ||
       pathname.startsWith("/packages") ||
       pathname.startsWith("/audit-log")) &&
-    role !== "ADMIN"
+    role !== "ADMIN" &&
+    role !== "OWNER"
   ) {
     return NextResponse.redirect(new URL("/dashboard", req.nextUrl))
   }

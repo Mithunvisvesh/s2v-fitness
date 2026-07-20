@@ -6,7 +6,7 @@ import { PackagesTableWrapper } from "@/components/package/packages-table-wrappe
 
 export default async function PackagesPage() {
   const session = await auth()
-  if (!session || session.user.role !== "ADMIN") {
+  if (!session || (session.user.role !== "ADMIN" && session.user.role !== "OWNER")) {
     notFound()
   }
 

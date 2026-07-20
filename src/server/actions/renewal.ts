@@ -14,8 +14,7 @@ type ActionResult =
         formErrors: string[]
       }
     }
-
-const STAFF_ROLES = ["ADMIN", "COUNSELLOR"]
+const STAFF_ROLES = ["OWNER", "ADMIN", "COUNSELLOR"]
 
 async function requireStaffSession() {
   const session = await auth()

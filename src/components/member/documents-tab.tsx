@@ -57,8 +57,7 @@ export function DocumentsTab({ memberId, documents, role }: DocumentsTabProps) {
   const [category, setCategory] = useState<string>("General")
   const [isPending, startTransition] = useTransition()
 
-  const canManage = role === "ADMIN" || role === "COUNSELLOR"
-
+  const canManage = role === "ADMIN" || role === "COUNSELLOR" || role === "OWNER"
   async function handleDownload(docId: string) {
     try {
       const result = await getSignedDocumentUrl(docId, memberId)

@@ -92,7 +92,7 @@ async function checkMutateAuth(
 
   const { role, id: userId } = session.user
 
-  const ALLOWED_ROLES = ["ADMIN", "COUNSELLOR", "TRAINER"]
+  const ALLOWED_ROLES = ["OWNER", "ADMIN", "COUNSELLOR", "TRAINER"]
   if (!ALLOWED_ROLES.includes(role)) {
     return {
       success: false,

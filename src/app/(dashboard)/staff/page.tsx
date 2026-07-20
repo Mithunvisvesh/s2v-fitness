@@ -6,7 +6,7 @@ import { StaffTableWrapper } from "@/components/staff/staff-table-wrapper"
 
 export default async function StaffPage() {
   const session = await auth()
-  if (!session || session.user.role !== "ADMIN") {
+  if (!session || (session.user.role !== "ADMIN" && session.user.role !== "OWNER")) {
     notFound()
   }
 
@@ -17,7 +17,7 @@ export default async function StaffPage() {
     id: s.id,
     name: s.name,
     email: s.email,
-    role: s.role as "ADMIN" | "COUNSELLOR" | "TRAINER",
+    role: s.role as "OWNER" | "ADMIN" | "COUNSELLOR" | "TRAINER",
     isActive: s.isActive,
   }))
 

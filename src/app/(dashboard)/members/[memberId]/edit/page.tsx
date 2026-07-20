@@ -17,7 +17,7 @@ export default async function EditMemberPage({ params }: PageProps) {
   const session = await auth()
   const role = session?.user?.role
 
-  if (!role || (role !== "ADMIN" && role !== "COUNSELLOR")) {
+  if (!role || (role !== "ADMIN" && role !== "COUNSELLOR" && role !== "OWNER")) {
     redirect(`/members/${memberId}`)
   }
 
@@ -65,8 +65,13 @@ export default async function EditMemberPage({ params }: PageProps) {
         defaultValues={defaultValues}
         counsellors={counsellors}
         trainers={trainers}
-        packages={packages}
-        showCounsellorField={role === "ADMIN"}
+        packages={packages.map((p) => ({
+          id: p.id,
+          name: p.name,
+          durationMonths: p.durationMonths,
+          price: p.price ? Number(p.price) : null,
+        }))}
+        showCounsellorField={role === "ADMIN" || role === "OWNER"}
       />
     </div>
   )

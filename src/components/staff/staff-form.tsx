@@ -30,7 +30,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-
 interface StaffFormProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -38,7 +37,7 @@ interface StaffFormProps {
     id: string
     name: string
     email: string
-    role: "ADMIN" | "COUNSELLOR" | "TRAINER"
+    role: "OWNER" | "ADMIN" | "COUNSELLOR" | "TRAINER"
   } | null
 }
 
@@ -160,6 +159,7 @@ export function StaffForm({ open, onOpenChange, staff }: StaffFormProps) {
                       <SelectItem value="TRAINER">Trainer</SelectItem>
                       <SelectItem value="COUNSELLOR">Counsellor</SelectItem>
                       <SelectItem value="ADMIN">Administrator</SelectItem>
+                      <SelectItem value="OWNER">Owner</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

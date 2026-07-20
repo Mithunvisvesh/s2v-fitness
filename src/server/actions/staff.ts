@@ -17,10 +17,9 @@ type ActionResult =
         formErrors: string[]
       }
     }
-
 async function requireAdminSession() {
   const session = await auth()
-  if (!session || session.user.role !== "ADMIN") {
+  if (!session || (session.user.role !== "ADMIN" && session.user.role !== "OWNER")) {
     throw new Error("You don't have permission to perform this action.")
   }
   return session

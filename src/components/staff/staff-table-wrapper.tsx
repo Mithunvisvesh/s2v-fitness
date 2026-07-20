@@ -5,12 +5,11 @@ import { PlusCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { StaffTable } from "@/components/staff/staff-table"
 import { StaffForm } from "@/components/staff/staff-form"
-
 interface UserRow {
   id: string
   name: string
   email: string
-  role: "ADMIN" | "COUNSELLOR" | "TRAINER"
+  role: "OWNER" | "ADMIN" | "COUNSELLOR" | "TRAINER"
   isActive: boolean
 }
 
