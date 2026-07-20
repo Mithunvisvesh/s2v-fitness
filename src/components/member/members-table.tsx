@@ -55,14 +55,21 @@ export function MembersTable({
         </div>
         <div className="space-y-1">
           <p className="font-medium">
-            {hasFilters ? "No members match your filters" : "No members yet"}
+            {hasFilters
+              ? "No members match your filters"
+              : variant === "archived"
+              ? "No archived members"
+              : "No members yet"}
           </p>
           <p className="text-sm text-muted-foreground">
             {hasFilters
               ? "Try a different search term or clear the filters."
+              : variant === "archived"
+              ? "Members you archive will appear here."
               : "Register your first member to get started."}
           </p>
         </div>
+
         {!hasFilters && variant === "active" && canManage && (
           <Button asChild size="sm">
             <Link href="/members/new">Add member</Link>

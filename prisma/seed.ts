@@ -22,6 +22,30 @@ async function main() {
   })
 
   console.log("Admin user seeded successfully:", admin.email)
+
+  // Seed default membership packages matching legacy types
+  const defaultPackages = [
+    { name: "Monthly", durationMonths: 1, price: null },
+    { name: "Quarterly", durationMonths: 3, price: null },
+    { name: "Half-Yearly", durationMonths: 6, price: null },
+    { name: "Yearly", durationMonths: 12, price: null },
+  ]
+
+  for (const pkg of defaultPackages) {
+    const createdPkg = await prisma.package.upsert({
+      where: { name: pkg.name },
+      update: {
+        durationMonths: pkg.durationMonths,
+        price: pkg.price,
+      },
+      create: {
+        name: pkg.name,
+        durationMonths: pkg.durationMonths,
+        price: pkg.price,
+      },
+    })
+    console.log(`Package seeded successfully: ${createdPkg.name}`)
+  }
 }
 
 main()
