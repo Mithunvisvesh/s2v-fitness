@@ -58,6 +58,7 @@ interface MemberFormProps {
   trainers: StaffOption[]
   showCounsellorField?: boolean
   packages: { id: string; name: string; durationMonths: number; price: any }[]
+  onSuccess?: (memberId: string, gender: string) => void
 }
 
 function SectionHeading({ title, description }: { title: string; description?: string }) {
@@ -77,6 +78,7 @@ export function MemberForm({
   trainers,
   showCounsellorField = true,
   packages,
+  onSuccess,
 }: MemberFormProps) {
   const router = useRouter()
 
@@ -146,7 +148,11 @@ export function MemberForm({
     }
 
     toast.success(mode === "create" ? "Member registered." : "Member updated.")
-    router.push(`/members/${result.memberId}`)
+    if (mode === "create" && onSuccess) {
+      onSuccess(result.memberId, values.gender)
+    } else {
+      router.push(`/members/${result.memberId}`)
+    }
   }
 
   return (

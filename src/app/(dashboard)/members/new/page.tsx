@@ -3,7 +3,7 @@ import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth"
 import { getStaffOptions, getSuggestedMembershipNo } from "@/server/queries/members"
 import { getActivePackages } from "@/server/queries/package"
-import { MemberForm } from "@/components/member/member-form"
+import { RegistrationWizard } from "@/components/member/registration-wizard"
 
 export const metadata = { title: "Register Member — S2V Fitness" }
 
@@ -29,8 +29,7 @@ export default async function NewMemberPage() {
           Fill in the details below to create a new membership record.
         </p>
       </div>
-      <MemberForm
-        mode="create"
+      <RegistrationWizard
         counsellors={counsellors}
         trainers={trainers}
         packages={packages.map((p) => ({
@@ -41,6 +40,7 @@ export default async function NewMemberPage() {
         }))}
         showCounsellorField={role === "ADMIN" || role === "OWNER"}
         defaultValues={{ membershipNo: suggestedNo }}
+        role={role}
       />
     </div>
   )
