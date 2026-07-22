@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth"
 
 export async function getPackagesList() {
   const session = await auth()
-  if (!session || session.user.role !== "ADMIN") {
+  if (!session || (session.user.role !== "ADMIN" && session.user.role !== "OWNER")) {
     throw new Error("Unauthorised: Access denied.")
   }
 

@@ -9,7 +9,7 @@ interface GetAuditLogsParams {
 
 export async function getAuditLogs({ page = 1, limit = 20, search }: GetAuditLogsParams = {}) {
   const session = await auth()
-  if (!session || session.user.role !== "ADMIN") {
+  if (!session || (session.user.role !== "ADMIN" && session.user.role !== "OWNER")) {
     throw new Error("Unauthorised: Access denied.")
   }
 

@@ -14,7 +14,7 @@ async function requireDocumentAccess(memberId: string) {
 
   const { role, id: userId } = session.user
 
-  const ALLOWED_ROLES = ["ADMIN", "COUNSELLOR", "TRAINER"]
+  const ALLOWED_ROLES = ["OWNER", "ADMIN", "COUNSELLOR", "TRAINER"]
   if (!ALLOWED_ROLES.includes(role)) {
     throw new Error("Access Denied: Unauthorised role.")
   }

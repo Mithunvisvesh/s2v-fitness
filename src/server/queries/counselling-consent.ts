@@ -14,7 +14,7 @@ async function requireNotesAccess(memberId: string) {
 
   const { role, id: userId } = session.user
 
-  const ALLOWED_ROLES = ["ADMIN", "COUNSELLOR", "TRAINER"]
+  const ALLOWED_ROLES = ["OWNER", "ADMIN", "COUNSELLOR", "TRAINER"]
   if (!ALLOWED_ROLES.includes(role)) {
     throw new Error("Access Denied: Unauthorised role.")
   }
@@ -50,7 +50,7 @@ async function requireConsentAccess() {
 
   const { role } = session.user
 
-  const ALLOWED_ROLES = ["ADMIN", "COUNSELLOR"]
+  const ALLOWED_ROLES = ["OWNER", "ADMIN", "COUNSELLOR"]
   if (!ALLOWED_ROLES.includes(role)) {
     throw new Error("Access Denied: You do not have permission to view consent forms.")
   }
