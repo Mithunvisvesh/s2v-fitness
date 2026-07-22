@@ -18,6 +18,9 @@ import {
 import { Button } from "@/components/ui/button"
 import { useSidebarStore } from "@/store/sidebar-store"
 
+import Image from "next/image"
+import logo from "../../../public/logo.png"
+
 export function Sidebar({ role }: { role?: string }) {
   const pathname = usePathname()
   const { collapsed } = useSidebarStore()
@@ -44,7 +47,7 @@ export function Sidebar({ role }: { role?: string }) {
       )}
     >
       <div className="flex items-center h-16 px-3 border-b gap-2">
-        <img src="/logo.png" alt="Logo" className="h-8 w-auto object-contain rounded bg-zinc-900 p-0.5 border border-zinc-800 shrink-0" />
+        <Image src={logo} alt="Logo" className="h-8 w-auto object-contain rounded bg-zinc-900 p-0.5 border border-zinc-800 shrink-0" priority />
         {!collapsed && <span className="font-bold text-sm tracking-tight leading-tight">S2V Fitness Centre</span>}
       </div>
       <nav className="flex-1 p-2 space-y-1">

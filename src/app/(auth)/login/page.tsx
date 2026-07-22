@@ -1,4 +1,6 @@
 import { LoginForm } from "@/components/auth/login-form"
+import Image from "next/image"
+import logo from "../../../../public/logo.png"
 
 export default function LoginPage() {
   return (
@@ -10,7 +12,7 @@ export default function LoginPage() {
         
         {/* Brand Logo/Header */}
         <div className="relative z-10 flex items-center gap-3 font-heading text-lg font-semibold tracking-tight">
-          <img src="/logo.png" alt="S2V Fitness Centre Logo" className="h-10 w-auto object-contain rounded-md bg-zinc-900 p-0.5 border border-zinc-800" />
+          <Image src={logo} alt="S2V Fitness Centre Logo" className="h-10 w-auto object-contain rounded-md bg-zinc-900 p-0.5 border border-zinc-800" priority />
           <span className="font-bold tracking-wider text-zinc-100">S2V Fitness Centre</span>
         </div>
 
@@ -40,7 +42,7 @@ export default function LoginPage() {
       {/* Right Column: Interactive Form */}
       <div className="flex flex-col items-center justify-center p-6 sm:p-12 lg:p-16 bg-zinc-950/20 gap-8">
         <div className="w-full max-w-md flex justify-center">
-          <img src="/logo.png" alt="S2V Fitness Centre" className="h-16 w-auto object-contain rounded-lg shadow-lg bg-zinc-900 p-1 border border-zinc-800" />
+          <Image src={logo} alt="S2V Fitness Centre" className="h-16 w-auto object-contain rounded-lg shadow-lg bg-zinc-900 p-1 border border-zinc-800" priority />
         </div>
         <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-500">
           <LoginForm />
