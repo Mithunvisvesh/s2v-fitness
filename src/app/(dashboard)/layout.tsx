@@ -12,6 +12,12 @@ export default async function DashboardLayout({
   if (!session) redirect("/login")
   return (
     <div className="flex h-screen overflow-hidden">
+      <style dangerouslySetInnerHTML={{ __html: `
+        html, body {
+          height: 100% !important;
+          overflow: hidden !important;
+        }
+      `}} />
       <Sidebar role={session.user.role} />
       <div className="flex flex-1 flex-col overflow-hidden">
         <TopNav />
