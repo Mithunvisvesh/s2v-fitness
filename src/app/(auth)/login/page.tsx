@@ -9,11 +9,9 @@ export default function LoginPage() {
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
         
         {/* Brand Logo/Header */}
-        <div className="relative z-10 flex items-center gap-2.5 font-heading text-lg font-semibold tracking-tight">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground font-black shadow-md shadow-primary/20">
-            S2V
-          </div>
-          <span className="font-bold tracking-wider text-zinc-100">S2V FITNESS</span>
+        <div className="relative z-10 flex items-center gap-3 font-heading text-lg font-semibold tracking-tight">
+          <img src="/logo.png" alt="S2V Fitness Centre Logo" className="h-10 w-auto object-contain rounded-md bg-zinc-900 p-0.5 border border-zinc-800" />
+          <span className="font-bold tracking-wider text-zinc-100">S2V Fitness Centre</span>
         </div>
 
         {/* Brand Focus Content */}
@@ -40,7 +38,10 @@ export default function LoginPage() {
       </div>
 
       {/* Right Column: Interactive Form */}
-      <div className="flex flex-col items-center justify-center p-6 sm:p-12 lg:p-16 bg-zinc-950/20">
+      <div className="flex flex-col items-center justify-center p-6 sm:p-12 lg:p-16 bg-zinc-950/20 gap-8">
+        <div className="w-full max-w-md flex justify-center">
+          <img src="/logo.png" alt="S2V Fitness Centre" className="h-16 w-auto object-contain rounded-lg shadow-lg bg-zinc-900 p-1 border border-zinc-800" />
+        </div>
         <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-500">
           <LoginForm />
         </div>

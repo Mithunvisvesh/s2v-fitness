@@ -43,8 +43,9 @@ export function Sidebar({ role }: { role?: string }) {
         collapsed ? "w-16" : "w-64"
       )}
     >
-      <div className="flex items-center h-16 px-4 border-b">
-        {!collapsed && <span className="font-bold text-xl">S2V Fitness</span>}
+      <div className="flex items-center h-16 px-3 border-b gap-2">
+        <img src="/logo.png" alt="Logo" className="h-8 w-auto object-contain rounded bg-zinc-900 p-0.5 border border-zinc-800 shrink-0" />
+        {!collapsed && <span className="font-bold text-sm tracking-tight leading-tight">S2V Fitness Centre</span>}
       </div>
       <nav className="flex-1 p-2 space-y-1">
         {items.map((item) => (
