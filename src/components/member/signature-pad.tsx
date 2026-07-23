@@ -1,18 +1,21 @@
 "use client"
 
 import * as React from "react"
-import { Trash2 } from "lucide-react"
+import { Trash2, Undo2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 interface SignaturePadProps {
   value?: string
   onChange: (value: string) => void
   disabled?: boolean
+  onClear?: () => void
+  onStartDrawing?: () => void
 }
 
-export function SignaturePad({ value, onChange, disabled }: SignaturePadProps) {
+export function SignaturePad({ value, onChange, disabled, onClear, onStartDrawing }: SignaturePadProps) {
   const canvasRef = React.useRef<HTMLCanvasElement>(null)
   const [isDrawing, setIsDrawing] = React.useState(false)
+  const [history, setHistory] = React.useState<string[]>([])
 
   // Initialize canvas context
   const getContext = React.useCallback(() => {
@@ -29,9 +32,11 @@ export function SignaturePad({ value, onChange, disabled }: SignaturePadProps) {
     const ctx = getContext()
     if (canvas && ctx) {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
+      setHistory([])
       onChange("")
+      onClear?.()
     }
-  }, [getContext, onChange])
+  }, [getContext, onChange, onClear])
 
   // Setup drawing configuration
   React.useEffect(() => {
@@ -51,11 +56,15 @@ export function SignaturePad({ value, onChange, disabled }: SignaturePadProps) {
     ctx.lineJoin = "round"
   }, [])
 
-  // Redraw if value is provided from form state
+  // Redraw if value is provided from form state and history is empty (initial load)
   React.useEffect(() => {
     const canvas = canvasRef.current
     const ctx = getContext()
     if (!canvas || !ctx || !value) return
+
+    if (history.length === 0) {
+      setHistory([value])
+    }
 
     const img = new Image()
     img.onload = () => {
@@ -95,6 +104,7 @@ export function SignaturePad({ value, onChange, disabled }: SignaturePadProps) {
       ctx.beginPath()
       ctx.moveTo(coords.x, coords.y)
       setIsDrawing(true)
+      onStartDrawing?.()
     }
   }
 
@@ -117,9 +127,36 @@ export function SignaturePad({ value, onChange, disabled }: SignaturePadProps) {
     const canvas = canvasRef.current
     if (canvas) {
       const dataUrl = canvas.toDataURL("image/png")
+      setHistory(prev => [...prev, dataUrl])
       onChange(dataUrl)
     }
   }
+
+  const undo = React.useCallback(() => {
+    if (disabled) return
+    const canvas = canvasRef.current
+    const ctx = getContext()
+    if (!canvas || !ctx) return
+
+    const newHistory = [...history]
+    newHistory.pop() // remove current state
+    setHistory(newHistory)
+
+    if (newHistory.length === 0) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      onChange("")
+      onClear?.()
+    } else {
+      const lastState = newHistory[newHistory.length - 1]
+      const img = new Image()
+      img.onload = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+        onChange(lastState)
+      }
+      img.src = lastState
+    }
+  }, [history, getContext, onChange, onClear, disabled])
 
   return (
     <div className="flex flex-col gap-2">
@@ -139,7 +176,18 @@ export function SignaturePad({ value, onChange, disabled }: SignaturePadProps) {
           <div className="absolute inset-0 bg-muted/40 cursor-not-allowed" />
         )}
       </div>
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={undo}
+          disabled={disabled || history.length === 0}
+          className="gap-2"
+        >
+          <Undo2 className="h-4 w-4" />
+          Undo
+        </Button>
         <Button
           type="button"
           variant="outline"
@@ -149,7 +197,7 @@ export function SignaturePad({ value, onChange, disabled }: SignaturePadProps) {
           className="gap-2"
         >
           <Trash2 className="h-4 w-4" />
-          Clear Signature
+          Clear
         </Button>
       </div>
     </div>

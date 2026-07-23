@@ -193,10 +193,10 @@ export async function saveConsent(
         await tx.auditLog.create({
           data: {
             userId: session.user.id,
-            action: "UPDATE_CONSENT",
+            action: "COMPLETE_CONSENT",
             entityType: "Consent",
             entityId: cId,
-            details: { consentDate: data.consentDate },
+            details: { consentDate: data.consentDate, event: "DOCUMENT_UPDATED" },
           },
         })
       } else {
@@ -211,10 +211,10 @@ export async function saveConsent(
         await tx.auditLog.create({
           data: {
             userId: session.user.id,
-            action: "CREATE_CONSENT",
+            action: "COMPLETE_CONSENT",
             entityType: "Consent",
             entityId: cId,
-            details: { consentDate: data.consentDate },
+            details: { consentDate: data.consentDate, event: "DOCUMENT_COMPLETED" },
           },
         })
       }
@@ -224,6 +224,68 @@ export async function saveConsent(
 
     revalidatePath(`/members/${memberId}`)
     return { success: true, id: consentId }
+  } catch (err) {
+    return handlePrismaError(err)
+  }
+}
+
+export async function logSigningEvent(
+  memberId: string,
+  event: "START_SIGNING" | "CLEAR_SIGNING" | "ACCEPT_SIGNING" | "COMPLETE_CONSENT"
+): Promise<ActionResult> {
+  const authCheck = await checkAdminCounsellorAuth()
+  if (!authCheck.success) return authCheck.actionResult
+  const { session } = authCheck
+
+  try {
+    const log = await prisma.auditLog.create({
+      data: {
+        userId: session.user.id,
+        action: event,
+        entityType: "Consent",
+        entityId: memberId,
+        details: { timestamp: new Date().toISOString() },
+      },
+    })
+    return { success: true, id: log.id }
+  } catch (err) {
+    return handlePrismaError(err)
+  }
+}
+
+export async function deleteConsent(memberId: string): Promise<ActionResult> {
+  const authCheck = await checkAdminCounsellorAuth()
+  if (!authCheck.success) return authCheck.actionResult
+  const { session } = authCheck
+
+  try {
+    const existing = await prisma.consent.findUnique({
+      where: { memberId },
+      select: { id: true },
+    })
+
+    if (!existing) {
+      return { success: true, id: "" }
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.consent.delete({
+        where: { id: existing.id },
+      })
+
+      await tx.auditLog.create({
+        data: {
+          userId: session.user.id,
+          action: "CLEAR_SIGNING",
+          entityType: "Consent",
+          entityId: memberId,
+          details: { event: "CONSENT_DELETED_BY_STAFF" },
+        },
+      })
+    })
+
+    revalidatePath(`/members/${memberId}`)
+    return { success: true, id: "" }
   } catch (err) {
     return handlePrismaError(err)
   }
