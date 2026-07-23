@@ -1,4 +1,4 @@
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer"
+import { Document, Page, Text, View, StyleSheet, Image } from "@react-pdf/renderer"
 import { MemberReportData } from "@/server/queries/reports"
 
 const styles = StyleSheet.create({
@@ -10,23 +10,33 @@ const styles = StyleSheet.create({
     lineHeight: 1.5,
   },
   header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     borderBottomWidth: 2,
     borderBottomColor: "#1e3a8a",
     paddingBottom: 15,
     marginBottom: 20,
   },
-  title: {
-    fontSize: 22,
+  logoContainer: {
+    width: 150,
+  },
+  logo: {
+    height: 35,
+    objectFit: "contain",
+  },
+  headerRight: {
+    textAlign: "right",
+  },
+  brandText: {
+    fontSize: 14,
     fontWeight: "bold",
     color: "#1e3a8a",
-    textAlign: "center",
-    textTransform: "uppercase",
   },
-  subtitle: {
-    fontSize: 10,
+  subBrandText: {
+    fontSize: 8,
     color: "#6b7280",
-    textAlign: "center",
-    marginTop: 4,
+    marginTop: 2,
   },
   section: {
     marginBottom: 20,
@@ -95,8 +105,14 @@ export function MemberReportPdf({ data }: MemberReportPdfProps) {
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>S2V Fitness Management System</Text>
-          <Text style={styles.subtitle}>Consolidated Health & Fitness Report · Generated on {generatedAt}</Text>
+          <View style={styles.logoContainer}>
+            <Image src="/logo.png" style={styles.logo} />
+          </View>
+          <View style={styles.headerRight}>
+            <Text style={styles.brandText}>S2V Fitness Centre</Text>
+            <Text style={styles.subBrandText}>Consolidated Health & Fitness Report</Text>
+            <Text style={styles.subBrandText}>Generated on {generatedAt}</Text>
+          </View>
         </View>
 
         {/* Member Profile Info */}
