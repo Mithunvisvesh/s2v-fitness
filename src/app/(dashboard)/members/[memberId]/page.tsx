@@ -300,6 +300,8 @@ export default async function MemberProfilePage({ params, searchParams }: PagePr
               memberId={memberId}
               role={role}
               consent={consent}
+              memberName={member.fullName}
+              membershipNo={member.membershipNo}
             />
           </TabsContent>
         )}

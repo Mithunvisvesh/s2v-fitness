@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
@@ -23,7 +23,9 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
-import { ShieldAlert, CheckCircle } from "lucide-react"
+import { ShieldAlert, CheckCircle, Download } from "lucide-react"
+import { PDFDownloadLink } from "@react-pdf/renderer"
+import { MemberConsentPdf } from "@/components/reports/member-consent-pdf"
 
 interface ConsentTabProps {
   memberId: string
@@ -36,10 +38,18 @@ interface ConsentTabProps {
     consentDate: Date
     digitalSignature: string | null
   } | null
+  memberName?: string
+  membershipNo?: string
   onSuccess?: () => void
 }
 
-export function ConsentTab({ memberId, role, consent, onSuccess }: ConsentTabProps) {
+export function ConsentTab({ memberId, role, consent, memberName = "", membershipNo = "", onSuccess }: ConsentTabProps) {
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
   const form = useForm<ConsentFormValues>({
     resolver: zodResolver(consentSchema),
     defaultValues: {
@@ -100,14 +110,30 @@ export function ConsentTab({ memberId, role, consent, onSuccess }: ConsentTabPro
     <div className="space-y-6">
       {consent ? (
         <Card className="border-primary/30 bg-primary/5">
-          <CardHeader className="flex flex-row items-center space-x-3 space-y-0 pb-4">
-            <CheckCircle className="h-6 w-6 text-primary" />
-            <div>
-              <CardTitle className="text-base text-primary">Member Consent Active</CardTitle>
-              <CardDescription>
-                A signed digital consent record is active for this member.
-              </CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+            <div className="flex items-center space-x-3">
+              <CheckCircle className="h-6 w-6 text-primary" />
+              <div>
+                <CardTitle className="text-base text-primary">Member Consent Active</CardTitle>
+                <CardDescription>
+                  A signed digital consent record is active for this member.
+                </CardDescription>
+              </div>
             </div>
+            {isMounted && (role === "OWNER" || role === "ADMIN") && (
+              <PDFDownloadLink
+                document={<MemberConsentPdf memberName={memberName} membershipNo={membershipNo} consent={consent} />}
+                fileName={`Consent_${membershipNo}_${memberName.replace(/[^a-zA-Z0-9.-]/g, "_")}.pdf`}
+                style={{ textDecoration: "none" }}
+              >
+                {({ loading }) => (
+                  <Button variant="outline" size="sm" disabled={loading} className="gap-2">
+                    <Download className="h-4 w-4" />
+                    {loading ? "Generating PDF..." : "Download Consent PDF"}
+                  </Button>
+                )}
+              </PDFDownloadLink>
+            )}
           </CardHeader>
           <CardContent className="text-sm space-y-2">
             <p><strong>Signed Date:</strong> {formatDate(consent.consentDate)}</p>
