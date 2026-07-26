@@ -306,7 +306,7 @@ export function MeasurementForm({
               render={({ field }) => (
                 <NumericField
                   label="Upper body width (Bi-Acromial)"
-                  unit="cm"
+                  unit="inches"
                   field={field}
                 />
               )}
@@ -317,7 +317,7 @@ export function MeasurementForm({
               render={({ field }) => (
                 <NumericField
                   label="Lower body width (Bi-Iliac)"
-                  unit="cm"
+                  unit="inches"
                   field={field}
                 />
               )}
@@ -334,49 +334,49 @@ export function MeasurementForm({
               control={form.control}
               name="neckCirc"
               render={({ field }) => (
-                <NumericField label="Neck" unit="cm" field={field} />
+                <NumericField label="Neck" unit="inches" field={field} />
               )}
             />
             <FormField
               control={form.control}
               name="shoulderCirc"
               render={({ field }) => (
-                <NumericField label="Shoulder (Bi-Acromial)" unit="cm" field={field} />
+                <NumericField label="Shoulder (Bi-Acromial)" unit="inches" field={field} />
               )}
             />
             <FormField
               control={form.control}
               name="chestNormal"
               render={({ field }) => (
-                <NumericField label="Chest — normal" unit="cm" field={field} />
+                <NumericField label="Chest — normal" unit="inches" field={field} />
               )}
             />
             <FormField
               control={form.control}
               name="chestExpansion"
               render={({ field }) => (
-                <NumericField label="Chest — expansion" unit="cm" field={field} />
+                <NumericField label="Chest — expansion" unit="inches" field={field} />
               )}
             />
             <FormField
               control={form.control}
               name="armCirc"
               render={({ field }) => (
-                <NumericField label="Arm" unit="cm" field={field} />
+                <NumericField label="Arm" unit="inches" field={field} />
               )}
             />
             <FormField
               control={form.control}
               name="forearmCirc"
               render={({ field }) => (
-                <NumericField label="Forearm" unit="cm" field={field} />
+                <NumericField label="Forearm" unit="inches" field={field} />
               )}
             />
             <FormField
               control={form.control}
               name="abdomenCirc"
               render={({ field }) => (
-                <NumericField label="Abdominal" unit="cm" field={field} />
+                <NumericField label="Abdominal" unit="inches" field={field} />
               )}
             />
 
@@ -404,7 +404,7 @@ export function MeasurementForm({
                       />
                     </FormControl>
                     <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-                      cm
+                      inches
                     </span>
                   </div>
                   <FormMessage />
@@ -436,7 +436,7 @@ export function MeasurementForm({
                       />
                     </FormControl>
                     <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-                      cm
+                      inches
                     </span>
                   </div>
                   <FormMessage />
@@ -466,14 +466,14 @@ export function MeasurementForm({
               control={form.control}
               name="midThighCirc"
               render={({ field }) => (
-                <NumericField label="Mid-Thigh" unit="cm" field={field} />
+                <NumericField label="Mid-Thigh" unit="inches" field={field} />
               )}
             />
             <FormField
               control={form.control}
               name="calfCirc"
               render={({ field }) => (
-                <NumericField label="Calf" unit="cm" field={field} />
+                <NumericField label="Calf" unit="inches" field={field} />
               )}
             />
           </CardContent>

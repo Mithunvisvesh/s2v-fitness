@@ -210,11 +210,11 @@ export function MeasurementsTab({
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
               <StatBlock
                 label="Waist"
-                value={latest.waistCirc ? `${latest.waistCirc} cm` : null}
+                value={latest.waistCirc ? `${latest.waistCirc} inches` : null}
               />
               <StatBlock
                 label="Hip"
-                value={latest.hipCirc ? `${latest.hipCirc} cm` : null}
+                value={latest.hipCirc ? `${latest.hipCirc} inches` : null}
               />
               <StatBlock
                 label="WHR"

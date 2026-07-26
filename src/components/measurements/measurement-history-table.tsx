@@ -134,10 +134,10 @@ export function MeasurementHistoryTable({
                   {m.bodyFatPercent != null ? `${m.bodyFatPercent}%` : "—"}
                 </TableCell>
                 <TableCell>
-                  {m.waistCirc != null ? `${m.waistCirc} cm` : "—"}
+                  {m.waistCirc != null ? `${m.waistCirc} inches` : "—"}
                 </TableCell>
                 <TableCell>
-                  {m.hipCirc != null ? `${m.hipCirc} cm` : "—"}
+                  {m.hipCirc != null ? `${m.hipCirc} inches` : "—"}
                 </TableCell>
                 <TableCell>
                   {m.waistHipRatio != null ? (

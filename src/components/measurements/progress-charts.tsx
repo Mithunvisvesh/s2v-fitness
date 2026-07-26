@@ -189,12 +189,12 @@ export function ProgressCharts({ measurements, memberGender }: ProgressChartsPro
       <ProgressChart
         title="Waist Circumference"
         data={toChartData(measurements, "waistCirc")}
-        unit="cm"
+        unit="inches"
       />
       <ProgressChart
         title="Hip Circumference"
         data={toChartData(measurements, "hipCirc")}
-        unit="cm"
+        unit="inches"
       />
       <ProgressChart
         title="Waist/Hip Ratio"
