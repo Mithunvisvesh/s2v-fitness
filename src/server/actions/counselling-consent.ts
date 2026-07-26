@@ -168,9 +168,9 @@ export async function saveConsent(
 
   try {
     const dbData = {
-      emergencyContactName: data.emergencyContactName,
-      emergencyMobile: data.emergencyMobile,
-      relationship: data.relationship,
+      emergencyContactName: data.emergencyContactName || null,
+      emergencyMobile: data.emergencyMobile || null,
+      relationship: data.relationship || null,
       consentDate: data.consentDate,
       digitalSignature: data.digitalSignature || "ACCEPTED_BY_MEMBER",
     }

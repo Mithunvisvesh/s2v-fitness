@@ -16,9 +16,9 @@ export type CounsellingNoteFormValues = z.infer<typeof counsellingNoteSchema>
  * Tracks emergency details and member acknowledgement.
  */
 export const consentSchema = z.object({
-  emergencyContactName: z.string().trim().min(1, "Emergency contact name is required").max(100),
-  emergencyMobile: z.string().trim().min(10, "Mobile number must be at least 10 digits").max(20),
-  relationship: z.string().trim().min(1, "Relationship to member is required").max(50),
+  emergencyContactName: z.string().trim().max(100).optional().or(z.literal("")),
+  emergencyMobile: z.string().trim().max(20).optional().or(z.literal("")),
+  relationship: z.string().trim().max(50).optional().or(z.literal("")),
   consentDate: z.date({
     error: "Consent date is required",
   }),

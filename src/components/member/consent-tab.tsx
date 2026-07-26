@@ -196,9 +196,9 @@ export function ConsentTab({ memberId, role, consent, memberName = "", membershi
           </CardHeader>
           <CardContent className="text-sm space-y-2">
             <p><strong>Signed Date:</strong> {formatDate(consent.consentDate)}</p>
-            <p><strong>Emergency Contact:</strong> {consent.emergencyContactName}</p>
-            <p><strong>Mobile:</strong> {consent.emergencyMobile}</p>
-            <p><strong>Relationship:</strong> {consent.relationship}</p>
+            <p><strong>Emergency Contact:</strong> {consent.emergencyContactName || "Not provided"}</p>
+            <p><strong>Mobile:</strong> {consent.emergencyMobile || "Not provided"}</p>
+            <p><strong>Relationship:</strong> {consent.relationship || "Not provided"}</p>
             <p><strong>Acknowledgement:</strong> Accepted via electronic checkbox signature.</p>
             {consent.digitalSignature && consent.digitalSignature.startsWith("data:image/") && (
               <div className="mt-4 pt-4 border-t">
