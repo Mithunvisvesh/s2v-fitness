@@ -444,6 +444,7 @@ model AuditLog {
   id          String @id @default(cuid())
   userId      String
   user        User   @relation(fields: [userId], references: [id])
+  actorRole   String? // Snapshot of user role at time of action
   action      String // "CREATE_MEMBER", "ARCHIVE_MEMBER", etc.
   entityType  String // "Member", "Measurement"
   entityId    String

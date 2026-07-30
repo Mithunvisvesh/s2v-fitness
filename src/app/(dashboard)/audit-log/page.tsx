@@ -103,7 +103,7 @@ export default async function AuditLogPage({ searchParams }: PageProps) {
                             <span className="text-xs text-muted-foreground">{log.user.email}</span>
                           </div>
                         </TableCell>
-                        <TableCell className="text-xs font-mono">{log.user.role}</TableCell>
+                        <TableCell className="text-xs font-mono">{log.actorRole || log.user.role}</TableCell>
                         <TableCell className="font-semibold text-xs text-primary">{log.action}</TableCell>
                         <TableCell>
                           <div className="flex flex-col text-xs font-mono">

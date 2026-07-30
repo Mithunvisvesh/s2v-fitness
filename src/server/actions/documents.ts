@@ -153,6 +153,7 @@ export async function uploadDocument(
       await tx.auditLog.create({
         data: {
           userId: session.user.id,
+          actorRole: session.user.role,
           action: "UPLOAD_DOCUMENT",
           entityType: "Document",
           entityId: doc.id,
@@ -238,6 +239,7 @@ export async function deleteDocument(
       await tx.auditLog.create({
         data: {
           userId: session.user.id,
+          actorRole: session.user.role,
           action: "DELETE_DOCUMENT",
           entityType: "Document",
           entityId: documentId,

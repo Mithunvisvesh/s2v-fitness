@@ -80,6 +80,7 @@ export async function createStaff(data: StaffFormValues): Promise<ActionResult> 
       await tx.auditLog.create({
         data: {
           userId: session.user.id,
+          actorRole: session.user.role,
           action: "CREATE_STAFF",
           entityType: "User",
           entityId: u.id,
@@ -155,6 +156,7 @@ export async function updateStaff(
       await tx.auditLog.create({
         data: {
           userId: session.user.id,
+          actorRole: session.user.role,
           action: "UPDATE_STAFF",
           entityType: "User",
           entityId: u.id,
@@ -204,6 +206,7 @@ export async function toggleStaffStatus(
       await tx.auditLog.create({
         data: {
           userId: session.user.id,
+          actorRole: session.user.role,
           action: isActive ? "ACTIVATE_STAFF" : "DEACTIVATE_STAFF",
           entityType: "User",
           entityId: u.id,
@@ -277,6 +280,7 @@ export async function changeOwnPassword(data: ChangePasswordFormValues): Promise
       await tx.auditLog.create({
         data: {
           userId: session.user.id,
+          actorRole: session.user.role,
           action: "CHANGE_PASSWORD",
           entityType: "User",
           entityId: session.user.id,

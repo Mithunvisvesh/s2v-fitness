@@ -196,6 +196,7 @@ export async function savePARQ(
         await tx.auditLog.create({
           data: {
             userId: session.user.id,
+            actorRole: session.user.role,
             action: "UPDATE_PARQ",
             entityType: "PARQ",
             entityId: updated.id,
@@ -216,6 +217,7 @@ export async function savePARQ(
         await tx.auditLog.create({
           data: {
             userId: session.user.id,
+            actorRole: session.user.role,
             action: "CREATE_PARQ",
             entityType: "PARQ",
             entityId: created.id,
@@ -290,6 +292,7 @@ export async function saveLifestyleProfile(
         await tx.auditLog.create({
           data: {
             userId: session.user.id,
+            actorRole: session.user.role,
             action: "UPDATE_LIFESTYLE",
             entityType: "LifestyleProfile",
             entityId: updated.id,
@@ -310,6 +313,7 @@ export async function saveLifestyleProfile(
         await tx.auditLog.create({
           data: {
             userId: session.user.id,
+            actorRole: session.user.role,
             action: "CREATE_LIFESTYLE",
             entityType: "LifestyleProfile",
             entityId: created.id,
@@ -381,6 +385,7 @@ export async function saveMedicalConditions(
       await tx.auditLog.create({
         data: {
           userId: session.user.id,
+          actorRole: session.user.role,
           action: "SAVE_MEDICAL_CONDITIONS",
           entityType: "MedicalCondition",
           entityId: memberId,
@@ -472,6 +477,7 @@ export async function saveMenstrualHistory(
         await tx.auditLog.create({
           data: {
             userId: session.user.id,
+            actorRole: session.user.role,
             action: "UPDATE_MENSTRUAL",
             entityType: "MenstrualHistory",
             entityId: updated.id,
@@ -492,6 +498,7 @@ export async function saveMenstrualHistory(
         await tx.auditLog.create({
           data: {
             userId: session.user.id,
+            actorRole: session.user.role,
             action: "CREATE_MENUAL",
             entityType: "MenstrualHistory",
             entityId: created.id,

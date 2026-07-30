@@ -99,6 +99,7 @@ export async function renewMembership(
       await tx.auditLog.create({
         data: {
           userId: session.user.id,
+          actorRole: session.user.role,
           action: "RENEW_MEMBERSHIP",
           entityType: "Member",
           entityId: memberId,

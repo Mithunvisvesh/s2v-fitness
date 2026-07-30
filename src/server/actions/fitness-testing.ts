@@ -197,6 +197,7 @@ export async function savePosturalAnalysis(
         await tx.auditLog.create({
           data: {
             userId: session.user.id,
+            actorRole: session.user.role,
             action: "UPDATE_POSTURAL",
             entityType: "PosturalAnalysis",
             entityId: updated.id,
@@ -217,6 +218,7 @@ export async function savePosturalAnalysis(
         await tx.auditLog.create({
           data: {
             userId: session.user.id,
+            actorRole: session.user.role,
             action: "CREATE_POSTURAL",
             entityType: "PosturalAnalysis",
             entityId: created.id,
@@ -295,6 +297,7 @@ export async function saveFitnessTest(
         await tx.auditLog.create({
           data: {
             userId: session.user.id,
+            actorRole: session.user.role,
             action: "UPDATE_FITNESSTEST",
             entityType: "FitnessTest",
             entityId: updated.id,
@@ -315,6 +318,7 @@ export async function saveFitnessTest(
         await tx.auditLog.create({
           data: {
             userId: session.user.id,
+            actorRole: session.user.role,
             action: "CREATE_FITNESSTEST",
             entityType: "FitnessTest",
             entityId: created.id,

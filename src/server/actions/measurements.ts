@@ -137,6 +137,7 @@ export async function createMeasurement(
     await tx.auditLog.create({
       data: {
         userId: session.user.id,
+        actorRole: session.user.role,
         action: "CREATE_MEASUREMENT",
         entityType: "Measurement",
         entityId: meas.id,
@@ -176,6 +177,7 @@ export async function updateMeasurement(
     await tx.auditLog.create({
       data: {
         userId: session.user.id,
+        actorRole: session.user.role,
         action: "UPDATE_MEASUREMENT",
         entityType: "Measurement",
         entityId: measurementId,
@@ -203,6 +205,7 @@ export async function deleteMeasurement(
     await tx.auditLog.create({
       data: {
         userId: session.user.id,
+        actorRole: session.user.role,
         action: "DELETE_MEASUREMENT",
         entityType: "Measurement",
         entityId: measurementId,

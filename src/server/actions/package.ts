@@ -53,6 +53,7 @@ export async function createPackage(data: PackageFormValues): Promise<ActionResu
       await tx.auditLog.create({
         data: {
           userId: session.user.id,
+          actorRole: session.user.role,
           action: "CREATE_PACKAGE",
           entityType: "Package",
           entityId: p.id,
@@ -109,6 +110,7 @@ export async function updatePackage(
       await tx.auditLog.create({
         data: {
           userId: session.user.id,
+          actorRole: session.user.role,
           action: "UPDATE_PACKAGE",
           entityType: "Package",
           entityId: p.id,
@@ -148,6 +150,7 @@ export async function togglePackageStatus(
       await tx.auditLog.create({
         data: {
           userId: session.user.id,
+          actorRole: session.user.role,
           action: isActive ? "ACTIVATE_PACKAGE" : "DEACTIVATE_PACKAGE",
           entityType: "Package",
           entityId: p.id,

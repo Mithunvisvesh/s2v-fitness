@@ -138,6 +138,7 @@ export async function saveCounsellingNote(
     await prisma.auditLog.create({
       data: {
         userId: session.user.id,
+        actorRole: session.user.role,
         action: "CREATE_COUNSELLINGNOTE",
         entityType: "CounsellingNote",
         entityId: created.id,
@@ -193,6 +194,7 @@ export async function saveConsent(
         await tx.auditLog.create({
           data: {
             userId: session.user.id,
+            actorRole: session.user.role,
             action: "COMPLETE_CONSENT",
             entityType: "Consent",
             entityId: cId,
@@ -211,6 +213,7 @@ export async function saveConsent(
         await tx.auditLog.create({
           data: {
             userId: session.user.id,
+            actorRole: session.user.role,
             action: "COMPLETE_CONSENT",
             entityType: "Consent",
             entityId: cId,
@@ -241,6 +244,7 @@ export async function logSigningEvent(
     const log = await prisma.auditLog.create({
       data: {
         userId: session.user.id,
+        actorRole: session.user.role,
         action: event,
         entityType: "Consent",
         entityId: memberId,
@@ -276,6 +280,7 @@ export async function deleteConsent(memberId: string): Promise<ActionResult> {
       await tx.auditLog.create({
         data: {
           userId: session.user.id,
+          actorRole: session.user.role,
           action: "CLEAR_SIGNING",
           entityType: "Consent",
           entityId: memberId,

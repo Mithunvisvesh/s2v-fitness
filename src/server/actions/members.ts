@@ -154,6 +154,7 @@ export async function createMember(values: MemberFormValues): Promise<ActionResu
       await tx.auditLog.create({
         data: {
           userId: session.user.id,
+          actorRole: session.user.role,
           action: "CREATE_MEMBER",
           entityType: "Member",
           entityId: m.id,
@@ -217,6 +218,7 @@ export async function updateMember(
       await tx.auditLog.create({
         data: {
           userId: session.user.id,
+          actorRole: session.user.role,
           action: "UPDATE_MEMBER",
           entityType: "Member",
           entityId: memberId,
@@ -245,6 +247,7 @@ export async function archiveMember(memberId: string) {
     await tx.auditLog.create({
       data: {
         userId: session.user.id,
+        actorRole: session.user.role,
         action: "ARCHIVE_MEMBER",
         entityType: "Member",
         entityId: memberId,
@@ -277,6 +280,7 @@ export async function restoreMember(memberId: string): Promise<ActionResult> {
       await tx.auditLog.create({
         data: {
           userId: session.user.id,
+          actorRole: session.user.role,
           action: "RESTORE_MEMBER",
           entityType: "Member",
           entityId: memberId,
@@ -313,6 +317,7 @@ export async function assignTrainer(
     await prisma.auditLog.create({
       data: {
         userId: session.user.id,
+        actorRole: session.user.role,
         action: "UPDATE_MEMBER_TRAINER",
         entityType: "Member",
         entityId: memberId,
