@@ -150,12 +150,14 @@ model Member {
   posturalAnalyses    PosturalAnalysis[] @relation("MemberPostural")
   fitnessTests        FitnessTest[]      @relation("MemberFitness")
   measurements        Measurement[]
-  counsellingNotes CounsellingNote[]
-  documents        Document[]
-  consent          Consent?
-  renewals         MembershipRenewal[]
+  counsellingNotes    CounsellingNote[]
+  documents           Document[]
+  consent             Consent?
+  renewals            MembershipRenewal[]
 
   archivedAt      DateTime?
+  amountPaid      Decimal?
+  paymentMethod   String?
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 
@@ -474,6 +476,8 @@ model MembershipRenewal {
   renewedAt        DateTime @default(now())
   renewedBy        String
   renewedByUser    User     @relation(fields: [renewedBy], references: [id])
+  amountPaid       Decimal?
+  paymentMethod    String?
 
   @@index([memberId])
 }

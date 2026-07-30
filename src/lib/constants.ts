@@ -107,3 +107,12 @@ export function getWHRStatus(whr: number, gender: string): WHRStatus {
   if (gender === "FEMALE") return whr < 0.8 ? "Healthy" : "At Risk"
   return whr < 0.95 ? "Healthy" : "At Risk"
 }
+
+export const PAYMENT_METHOD_OPTIONS = [
+  { label: "Cash", value: "CASH" },
+  { label: "Card", value: "CARD" },
+  { label: "UPI", value: "UPI" },
+  { label: "Bank Transfer", value: "BANK_TRANSFER" },
+  { label: "Other", value: "OTHER" },
+] as const
+

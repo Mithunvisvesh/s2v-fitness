@@ -7,6 +7,7 @@ import { toast } from "sonner"
 import { renewalSchema, type RenewalFormValues } from "@/lib/validations/renewal"
 import { renewMembership } from "@/server/actions/renewal"
 import { toDateInputValue } from "@/lib/utils"
+import { PAYMENT_METHOD_OPTIONS } from "@/lib/constants"
 import {
   Dialog,
   DialogContent,
@@ -57,6 +58,8 @@ export function RenewalDialog({ memberId, currentEndDate, packages }: RenewalDia
       packageId: "",
       startDate: defaultStartDate,
       endDate: undefined as any,
+      amountPaid: "",
+      paymentMethod: "",
     },
   })
 
@@ -172,6 +175,45 @@ export function RenewalDialog({ memberId, currentEndDate, packages }: RenewalDia
                       className="bg-muted text-muted-foreground cursor-not-allowed"
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="amountPaid"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Amount Paid (Optional)</FormLabel>
+                  <FormControl>
+                    <Input type="number" step="0.01" placeholder="e.g. 5000" {...field} value={field.value ?? ""} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="paymentMethod"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Payment Method (Optional)</FormLabel>
+                  <Select value={field.value || ""} onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select payment method" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {PAYMENT_METHOD_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

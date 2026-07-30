@@ -25,6 +25,12 @@ export const memberSchema = z
     counsellorId: z.string().optional(),
     trainerId: z.string().optional(),
     packageId: z.string().optional().or(z.literal("")),
+    amountPaid: z.string()
+      .optional()
+      .or(z.literal(""))
+      .or(z.null())
+      .refine((val) => !val || !isNaN(Number(val)), { message: "Amount must be a valid number" }),
+    paymentMethod: z.string().optional().or(z.literal("")).or(z.null()),
   })
   .refine((data) => data.endDate > data.startDate, {
     message: "End date must be after the start date",

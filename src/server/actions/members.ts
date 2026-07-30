@@ -123,7 +123,7 @@ export async function createMember(values: MemberFormValues): Promise<ActionResu
     return { success: false, error: parsed.error.flatten() }
   }
 
-  const { fitnessGoals, registrationDate, counsellorId, trainerId, packageId, ...rest } = parsed.data
+  const { fitnessGoals, registrationDate, counsellorId, trainerId, packageId, amountPaid, paymentMethod, ...rest } = parsed.data
 
   // Pre-flight check (fast, avoids a write round-trip for the common case)
   const preflight = await checkUniqueness({
@@ -141,6 +141,8 @@ export async function createMember(values: MemberFormValues): Promise<ActionResu
           email: rest.email || null,
           date: registrationDate ?? new Date(),
           age: calculateAge(rest.dateOfBirth),
+          amountPaid: amountPaid ? new Prisma.Decimal(amountPaid) : null,
+          paymentMethod: paymentMethod || null,
           fitnessGoals: { create: fitnessGoals.map((goal) => ({ goal })) },
           counsellorId:
             session.user.role === "COUNSELLOR"
@@ -183,7 +185,7 @@ export async function updateMember(
     return { success: false, error: parsed.error.flatten() }
   }
 
-  const { fitnessGoals, registrationDate, counsellorId, trainerId, packageId, ...rest } = parsed.data
+  const { fitnessGoals, registrationDate, counsellorId, trainerId, packageId, amountPaid, paymentMethod, ...rest } = parsed.data
 
   // Pre-flight check — exclude the member being edited
   const preflight = await checkUniqueness(
@@ -205,6 +207,8 @@ export async function updateMember(
           email: rest.email || null,
           ...(registrationDate ? { date: registrationDate } : {}),
           age: calculateAge(rest.dateOfBirth),
+          amountPaid: amountPaid ? new Prisma.Decimal(amountPaid) : null,
+          paymentMethod: paymentMethod || null,
           counsellorId: counsellorId || null,
           trainerId: trainerId || null,
           packageId: packageId || null,

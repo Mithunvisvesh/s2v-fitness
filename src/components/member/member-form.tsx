@@ -14,6 +14,7 @@ import {
   MARITAL_STATUS_OPTIONS,
   PACKAGE_OPTIONS,
   PACKAGE_DURATION_MONTHS,
+  PAYMENT_METHOD_OPTIONS,
 } from "@/lib/constants"
 import { calculateAge, toDateInputValue } from "@/lib/utils"
 
@@ -103,6 +104,8 @@ export function MemberForm({
       counsellorId: "",
       trainerId: "",
       packageId: "",
+      amountPaid: defaultValues?.amountPaid ? String(defaultValues.amountPaid) : "",
+      paymentMethod: defaultValues?.paymentMethod || "",
       ...defaultValues,
     },
   })
@@ -477,6 +480,47 @@ export function MemberForm({
                 </FormItem>
               )}
             />
+            {mode === "create" && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="amountPaid"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Amount Paid (Optional)</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="0.01" placeholder="e.g. 5000" {...field} value={field.value ?? ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="paymentMethod"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Payment Method (Optional)</FormLabel>
+                      <Select value={field.value || ""} onValueChange={field.onChange}>
+                        <FormControl>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select payment method" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {PAYMENT_METHOD_OPTIONS.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
           </CardContent>
           <Separator />
           <CardContent>

@@ -38,7 +38,7 @@ import { MemberStatusBadge } from "@/components/member/status-badge"
 import { MeasurementsTab } from "@/components/measurements/measurements-tab"
 import { RenewalDialog } from "@/components/member/renewal-dialog"
 import { formatDate } from "@/lib/utils"
-import { PACKAGE_OPTIONS, MARITAL_STATUS_OPTIONS, GENDER_OPTIONS } from "@/lib/constants"
+import { PACKAGE_OPTIONS, MARITAL_STATUS_OPTIONS, GENDER_OPTIONS, PAYMENT_METHOD_OPTIONS } from "@/lib/constants"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 interface PageProps {
@@ -194,6 +194,23 @@ export default async function MemberProfilePage({ params, searchParams }: PagePr
                 <InfoRow label="Start date" value={formatDate(member.startDate)} />
                 <InfoRow label="End date" value={formatDate(member.endDate)} />
                 <InfoRow label="Status"><MemberStatusBadge status={member.status} /></InfoRow>
+                {(member.amountPaid !== null || member.paymentMethod) && (
+                  <>
+                    <Separator />
+                    {member.amountPaid !== null && (
+                      <InfoRow
+                        label="Initial Amount Paid"
+                        value={`₹${Number(member.amountPaid).toLocaleString("en-IN")}`}
+                      />
+                    )}
+                    {member.paymentMethod && (
+                      <InfoRow
+                        label="Initial Payment Method"
+                        value={PAYMENT_METHOD_OPTIONS.find((opt) => opt.value === member.paymentMethod)?.label ?? member.paymentMethod}
+                      />
+                    )}
+                  </>
+                )}
                 <Separator />
                 <InfoRow label="Counsellor" value={member.counsellor?.name} />
                 <InfoRow label="Trainer" value={member.trainer?.name} />
@@ -227,6 +244,8 @@ export default async function MemberProfilePage({ params, searchParams }: PagePr
                       <TableHead>Package</TableHead>
                       <TableHead>Previous End Date</TableHead>
                       <TableHead>New End Date</TableHead>
+                      <TableHead>Amount Paid</TableHead>
+                      <TableHead>Payment Method</TableHead>
                       <TableHead>Processed By</TableHead>
                       <TableHead>Processed At</TableHead>
                     </TableRow>
@@ -234,7 +253,7 @@ export default async function MemberProfilePage({ params, searchParams }: PagePr
                   <TableBody>
                     {(!member.renewals || member.renewals.length === 0) ? (
                       <TableRow>
-                        <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                        <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
                           No renewal history found.
                         </TableCell>
                       </TableRow>
@@ -244,6 +263,12 @@ export default async function MemberProfilePage({ params, searchParams }: PagePr
                           <TableCell className="font-medium">{r.packageAtRenewal}</TableCell>
                           <TableCell>{formatDate(r.previousEndDate)}</TableCell>
                           <TableCell>{formatDate(r.newEndDate)}</TableCell>
+                          <TableCell>
+                            {r.amountPaid !== null ? `₹${Number(r.amountPaid).toLocaleString("en-IN")}` : "—"}
+                          </TableCell>
+                          <TableCell>
+                            {PAYMENT_METHOD_OPTIONS.find((opt) => opt.value === r.paymentMethod)?.label ?? r.paymentMethod ?? "—"}
+                          </TableCell>
                           <TableCell>{r.renewedByUser?.name || "System"}</TableCell>
                           <TableCell>{new Date(r.renewedAt).toLocaleString("en-IN")}</TableCell>
                         </TableRow>

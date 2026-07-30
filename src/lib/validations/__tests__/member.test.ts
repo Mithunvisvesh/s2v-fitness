@@ -78,4 +78,24 @@ describe("Member Validation Schema", () => {
       expect(result.error.flatten().fieldErrors.fitnessGoals).toBeDefined()
     }
   })
+
+  it("passes with optional valid amountPaid and paymentMethod", () => {
+    const result = memberSchema.safeParse({
+      ...validData,
+      amountPaid: "1500.50",
+      paymentMethod: "UPI",
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it("fails if amountPaid is not a valid number", () => {
+    const result = memberSchema.safeParse({
+      ...validData,
+      amountPaid: "not-a-number",
+    })
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.flatten().fieldErrors.amountPaid).toBeDefined()
+    }
+  })
 })

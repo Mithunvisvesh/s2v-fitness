@@ -1,6 +1,7 @@
 "use server"
 
 import { prisma } from "@/lib/db"
+import { Prisma } from "@prisma/client"
 import { auth } from "@/lib/auth"
 import { renewalSchema, type RenewalFormValues } from "@/lib/validations/renewal"
 import { revalidatePath } from "next/cache"
@@ -41,7 +42,7 @@ export async function renewMembership(
       }
     }
 
-    const { packageId, startDate, endDate } = parsed.data
+    const { packageId, startDate, endDate, amountPaid, paymentMethod } = parsed.data
 
     const result = await prisma.$transaction(async (tx) => {
       // 1. Fetch current member details
@@ -92,6 +93,8 @@ export async function renewMembership(
           newEndDate: endDate,
           packageAtRenewal: pkg.name,
           renewedBy: session.user.id,
+          amountPaid: amountPaid ? new Prisma.Decimal(amountPaid) : null,
+          paymentMethod: paymentMethod || null,
         },
       })
 
