@@ -6,14 +6,15 @@ A full-stack, enterprise-grade SaaS platform built to streamline modern gym admi
 
 The S2V Fitness Management System digitizes and consolidates the physical fitness screening, postural analysis, and training progression workflow for gym operations. Built for performance, data security, and ease of use, it bridges the gap between gym administration and trainers by providing real-time analytics, structured physical tracking, and secure document management.
 
-The platform implements a strict role-based access control (RBAC) mechanism. This ensures that sensitive medical disclosures (such as menstrual history or detailed medical notes) are restricted to authorized personnel (Administrators and Counsellors) while allowing Trainers to view core physical assessments, log body compositions, and record trainer assignments.
+The platform implements a strict role-based access control (RBAC) mechanism. This ensures that sensitive medical disclosures (such as menstrual history or detailed medical notes) are restricted to authorized personnel (Administrators and Counsellors) while allowing Trainers to view core physical assessments, log body compositions, and record trainer assignments. Active system administration is shared between Owners and Administrators.
 
 ---
 
 ## Key Features
 
-*   **Role-Based Access Control (RBAC)**: Enforces access restrictions across three core roles:
-    *   `ADMIN` & `COUNSELLOR`: Full read/write access to all screening parameters, medical records, files, user permissions, and trainer-to-member assignments.
+*   **Role-Based Access Control (RBAC)**: Enforces access restrictions across four core roles:
+    *   `OWNER` & `ADMIN`: Full system administrative rights, including managing packages, audit log tracking, settings, and staff onboarding/management.
+    *   `COUNSELLOR`: Full read/write access to all screening parameters, counselling notes, member consents, and documents.
     *   `TRAINER`: Restricted access; trainers can only view and manage members explicitly assigned to them, and are barred from accessing sensitive medical sections.
 *   **Comprehensive Health & Fitness Screening**:
     *   **PAR-Q (Physical Activity Readiness Questionnaire)**: Standardized health clearance question checks with live alerts indicating when medical clearance is required.
@@ -28,7 +29,7 @@ The platform implements a strict role-based access control (RBAC) mechanism. Thi
 
 ## Tech Stack
 
-*   **Framework**: Next.js 14 (App Router)
+*   **Framework**: Next.js 16.2.9 (App Router)
 *   **Database**: PostgreSQL
 *   **ORM**: Prisma ORM
 *   **Authentication**: NextAuth v5 (Auth.js) with split configuration for optimized Vercel Edge Middleware performance
@@ -79,13 +80,19 @@ Follow these steps to set up and run the project locally.
     SUPABASE_SERVICE_ROLE_KEY="your-service-role-key"
     ```
 
-4.  **Sync Database Schema & Generate Prisma Client**:
-    Push the schema directly to your local database instance:
+4.  **Apply Database Migrations & Generate Prisma Client**:
+    Apply the existing migrations to your fresh local database instance:
     ```bash
-    npx prisma db push
+    npx prisma migrate deploy
     ```
 
-5.  **Run the Development Server**:
+5.  **Seed the Database**:
+    Seed default packages and the initial System Administrator account:
+    ```bash
+    npx prisma db seed
+    ```
+
+6.  **Run the Development Server**:
     ```bash
     npm run dev
     ```
