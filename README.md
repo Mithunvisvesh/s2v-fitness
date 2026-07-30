@@ -6,7 +6,7 @@ A full-stack, enterprise-grade SaaS platform built to streamline modern gym admi
 
 The S2V Fitness Management System digitizes and consolidates the physical fitness screening, postural analysis, and training progression workflow for gym operations. Built for performance, data security, and ease of use, it bridges the gap between gym administration and trainers by providing real-time analytics, structured physical tracking, and secure document management.
 
-The platform implements a strict role-based access control (RBAC) mechanism. This ensures that sensitive medical disclosures (such as menstrual history or detailed medical notes) are restricted to authorized personnel (Administrators and Counsellors) while allowing Trainers to view core physical assessments, log body compositions, and record trainer assignments. Active system administration is shared between Owners and Administrators.
+The platform implements a strict role-based access control (RBAC) mechanism. This ensures that sensitive medical disclosures (such as menstrual history or detailed medical notes) are restricted to authorized personnel (Owners, Administrators, and Counsellors) while allowing Trainers to view core physical assessments, log body compositions, and record trainer assignments. Active system administration is shared between Owners and Administrators.
 
 ---
 
